@@ -1,0 +1,95 @@
+.EasyMDEContainer .editor-toolbar {
+    @apply flex;
+    @apply flex-wrap;
+    @apply gap-px;
+    @apply lg:sticky;
+    @apply lg:top-16;
+    @apply lg:z-10;
+    @apply w-full;
+    @apply max-w-full;
+    @apply min-h-10;
+    @apply px-2.5;
+    @apply rounded-t-sm;
+    @apply bg-gradient-to-t;
+    @apply from-indigo-300/5;
+    @apply to-indigo-300/5;
+    @apply bg-white;
+    @apply shadow-md;
+    @apply shadow-blue-300/10;
+    @apply border;
+    @apply border-indigo-700/20;
+    @apply -mb-px;
+}
+
+.EasyMDEContainer:hover .editor-toolbar {
+    @apply border-t-blue-500;
+    @apply border-l-blue-500;
+    @apply border-r-blue-500;
+}
+
+.EasyMDEContainer .editor-toolbar i.separator {
+    @apply border-l-indigo-700/20;
+    @apply mx-1;
+    @apply lg:mx-2;
+}
+
+.EasyMDEContainer .editor-toolbar button {
+    @apply border-none;
+}
+
+.EasyMDEContainer .editor-toolbar button.active,
+.EasyMDEContainer .editor-toolbar button:hover {
+    @apply bg-indigo-300/20;
+}
+
+.EasyMDEContainer .editor-toolbar button.preview.active {
+    @apply bg-blue-600 !important;
+    @apply text-white !important;
+}
+
+.EasyMDEContainer .editor-toolbar button.undo {
+    @apply ml-auto !important;
+}
+
+.EasyMDEContainer .editor-toolbar button.table {
+    display: inline-block !important;
+    min-width: auto !important;
+    margin-top: 0 !important;
+}
+
+.EasyMDEContainer .editor-toolbar button.link {
+    color: inherit !important;
+}
+
+.EasyMDEContainer .CodeMirror {
+    @apply w-full;
+    @apply max-w-full;
+    @apply px-2.5;
+    @apply rounded-b-sm;
+    @apply bg-white;
+    @apply shadow-md;
+    @apply shadow-blue-300/10;
+    @apply border;
+    @apply border-t-0;
+    @apply border-indigo-700/20;
+    @apply placeholder:text-indigo-900/50;
+}
+
+.EasyMDEContainer:hover .CodeMirror {
+    /* prevent flash when focusing in toolbar */
+    @apply bg-white;
+    @apply border-blue-500;
+    @apply outline-none;
+    @apply shadow-md;
+    @apply shadow-blue-400/20;
+}
+
+.EasyMDEContainer .editor-statusbar {
+    @apply text-gray-500;
+    @apply px-0;
+}
+
+.EasyMDEContainer .editor-statusbar span.upload-image {
+    @apply inline-block;
+    @apply min-w-0;
+}

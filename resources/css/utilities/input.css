@@ -1,0 +1,72 @@
+.input-group {
+    @apply grid;
+    @apply gap-4;
+}
+
+.input {
+    @apply w-full;
+    @apply max-w-full;
+    @apply min-h-10;
+    @apply px-2.5;
+    @apply rounded-sm;
+    @apply bg-indigo-300/5;
+    @apply shadow-md;
+    @apply shadow-blue-300/10;
+    @apply border;
+    @apply border-indigo-700/20;
+    @apply hover:border-indigo-700/30;
+    @apply placeholder:text-indigo-900/50;
+}
+
+.input-sm {
+    @apply w-1/4;
+}
+
+.input-md {
+    @apply w-1/2;
+}
+
+.input-textarea {
+    min-height: 8rem;
+    max-width: none;
+    @apply py-2;
+}
+
+.input-html {
+    min-height: 8rem;
+    max-width: none;
+    @apply w-full;
+    @apply py-2;
+    @apply font-mono;
+}
+
+input[readonly],
+input:disabled {
+    @apply opacity-90;
+    @apply cursor-not-allowed;
+}
+
+.input-focus,
+.input:focus,
+.input:focus-within {
+    @apply bg-white;
+    @apply border-blue-500;
+    @apply outline-none;
+    @apply shadow-md;
+    @apply shadow-blue-400/20;
+    @apply placeholder:text-indigo-900/30;
+    @apply placeholder:opacity-100;
+}
+
+@screen lg {
+    .input-group {
+        @apply flex;
+        @apply items-start;
+        @apply justify-start;
+        order: 2;
+    }
+
+    .input-group > *:not(:last-child) {
+        @apply mr-4;
+    }
+}

@@ -1,0 +1,31 @@
+.icon-label {
+    display: flex;
+    align-items: center;
+    @apply justify-start;
+    @apply whitespace-nowrap;
+    @apply gap-2;
+}
+
+.icon-label-icon {
+    @apply opacity-70;
+}
+
+.icon-label-icon-caution {
+    @apply text-red-500;
+}
+
+.icon-label:hover .icon-label-icon-caution {
+    @apply text-red-700;
+}
+
+.icon-label-text {
+    @apply whitespace-nowrap;
+}
+
+.icon-button {
+    @apply opacity-75;
+}
+
+.icon-button:hover {
+    @apply text-blue-500;
+}

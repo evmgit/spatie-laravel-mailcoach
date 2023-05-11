@@ -1,0 +1,75 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+
+@import './utilities/alert.css';
+@import './utilities/button.css';
+@import './utilities/card.css';
+@import './utilities/chart.css';
+@import './utilities/checkbox.css';
+@import './utilities/counter.css';
+@import './utilities/dashboard.css';
+@import './utilities/display.css';
+@import './utilities/dl.css';
+@import './utilities/dropdown.css';
+@import './utilities/filter.css';
+@import './utilities/form.css';
+@import './utilities/icon.css';
+@import './utilities/input.css';
+@import './utilities/justify-self.css';
+@import './utilities/label.css';
+@import './utilities/link.css';
+@import './utilities/markup.css';
+@import './utilities/modal.css';
+@import './utilities/navigation.css';
+@import './utilities/pagination.css';
+@import './utilities/place.css';
+@import './utilities/progress-bar.css';
+@import './utilities/radio.css';
+@import './utilities/search.css';
+@import './utilities/select.css';
+@import './utilities/tab.css';
+@import './utilities/table.css';
+@import './utilities/tag.css';
+@import './utilities/toggle.css';
+@import './utilities/tooltip.css';
+@import './utilities/transitions.css';
+
+@import './vendor/flatpickr.css';
+@import './vendor/easy-mde-overrides.css';
+@import './vendor/choices.css';
+@import 'tailwindcss/utilities';
+
+@layer base {
+    *,
+    *:after,
+    *:before {
+        position: relative;
+    }
+
+    *:focus {
+        outline: none !important;
+    }
+
+    html {
+        @apply font-sans;
+        font-size: 12px;
+    }
+
+    @screen lg {
+        html {
+            font-size: 14px;
+        }
+    }
+
+    @screen xl {
+        html {
+            font-size: 16px;
+        }
+    }
+}
+
+@layer utilities {
+    [x-cloak] {
+        display: none !important;
+    }
+}

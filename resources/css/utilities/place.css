@@ -1,0 +1,18 @@
+@layer utilities {
+    .place-center {
+        align-items: center;
+        justify-items: center;
+        align-content: center;
+        justify-content: center;
+    }
+
+    .place-items-center {
+        align-items: center;
+        justify-items: center;
+    }
+
+    .place-content-center {
+        align-content: center;
+        justify-content: center;
+    }
+}

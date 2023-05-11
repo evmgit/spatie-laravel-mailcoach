@@ -1,0 +1,34 @@
+.search input {
+    @apply input;
+    @apply shadow-inner;
+    @apply shadow-blue-300/10;
+    @apply bg-indigo-400/5;
+    @apply h-8;
+    @apply pl-4;
+    @apply pr-1;
+    @apply rounded-md;
+    width: 12rem;
+}
+
+.search-icon {
+    @apply absolute;
+    top: 0;
+    right: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    @apply grid;
+    @apply place-center;
+    @apply text-indigo-900/50;
+    @apply pointer-events-none;
+    font-size: 0.9em;
+    @apply font-awesome;
+    font-weight: 900;
+    content: '\f00c';
+    transition: transform 0.3s;
+    transform: scale(1);
+}
+
+.search input:valid + .search-icon,
+.search input:focus + .search-icon {
+    transform: scale(0);
+}

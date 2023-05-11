@@ -1,0 +1,37 @@
+.counter {
+    @apply align-middle;
+    @apply inline-flex;
+    @apply justify-center;
+    @apply items-center;
+    @apply ml-1.5;
+    @apply rounded-full;
+    @apply font-bold;
+    height: 2em;
+    min-width: 2em;
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    padding: 0 0.35rem;
+    @apply bg-indigo-900/10;
+}
+
+.tabs .active .counter,
+.navigation-item .counter,
+.filters .filter-active .counter {
+    @apply bg-gradient-to-b;
+    @apply from-blue-500;
+    @apply to-blue-600;
+    @apply border;
+    @apply border-t-white/30;
+    @apply border-l-white/30;
+    @apply border-r-black/10;
+    @apply border-b-black/10;
+    @apply text-white;
+    @apply shadow-sm;
+    @apply shadow-blue-900/20;
+}
+
+.counter-automation {
+    @apply bg-gradient-to-b;
+    @apply from-blue-500/10;
+    @apply to-blue-600/10;
+}

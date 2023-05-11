@@ -1,0 +1,136 @@
+.form-grid {
+    @apply grid;
+    @apply gap-y-6;
+    @apply max-w-full;
+}
+
+.form-row {
+    @apply grid;
+    @apply grid-cols-3;
+    @apply gap-x-4;
+    @apply max-w-full;
+    @apply md:max-w-xl; /* same as form-field */
+}
+
+.form-fieldsets-no-max-w .form-fieldset {
+    @apply md:max-w-none;
+}
+
+.form-fieldset {
+    @apply grid;
+    @apply gap-y-6;
+    @apply pl-6;
+    @apply my-4;
+    @apply md:max-w-xl; /* same as form-field */
+}
+
+.form-fieldset:before {
+    content: '';
+    @apply absolute;
+    @apply left-0;
+    @apply top-0;
+    @apply w-[3px];
+    @apply h-full;
+    @apply rounded-full;
+    @apply bg-gradient-to-b;
+    @apply from-indigo-700/10;
+    @apply to-indigo-700/20;
+}
+
+.form-fieldset-focus:before {
+    @apply from-blue-400;
+    @apply to-indigo-500;
+}
+
+.form-fieldset-clean {
+    @apply bg-gray-500/5;
+    @apply grid;
+    @apply gap-y-6;
+    @apply p-6;
+    @apply rounded;
+    @apply border;
+    @apply border-gray-900/10;
+}
+
+.form-fieldset-clean.form-fieldset-focus {
+    @apply bg-blue-500/5;
+}
+
+.form-legend {
+    @apply uppercase;
+    @apply tracking-widest;
+    @apply font-extrabold;
+}
+
+.form-legend-accent {
+    @apply font-semibold;
+    @apply normal-case;
+    @apply tracking-normal;
+    @apply truncate;
+}
+
+.form-actions {
+    @apply grid;
+    @apply items-start;
+    @apply gap-x-4;
+    @apply gap-y-8;
+    @apply grid-cols-12;
+}
+
+.form-field {
+    @apply flex;
+    @apply flex-col;
+    @apply gap-2;
+    @apply md:max-w-xl;
+    @apply min-w-0;
+}
+
+.form-buttons {
+    @apply sticky;
+    @apply z-10;
+    @apply -bottom-px;
+    @apply -mx-6;
+    @apply px-6;
+    @apply md:-mx-10;
+    @apply md:px-10;
+    @apply py-3;
+    @apply -mb-3;
+    @apply transition-shadow;
+}
+
+.form-buttons-stuck {
+    @apply bg-white;
+    @apply border-t;
+    @apply border-indigo-700/20;
+    box-shadow: rgba(37, 99, 235, 0.05) 0px -10px 15px -3px, rgba(37, 99, 235, 0.05) 0px -4px 6px -4px !important;
+}
+
+.form-error {
+    @apply text-xs;
+    @apply text-red-600;
+    @apply flex;
+    @apply mr-auto;
+
+    @apply before:content-['\21'];
+    @apply before:mr-2;
+    @apply before:w-4;
+    @apply before:h-4;
+    @apply before:inline-flex;
+    @apply before:flex-none;
+    @apply before:items-center;
+    @apply before:justify-center;
+    @apply before:rounded-full;
+    @apply before:bg-gradient-to-b;
+    @apply before:from-red-500;
+    @apply before:to-red-500/70;
+    @apply before:font-awesome;
+    @apply before:font-extrabold;
+    @apply before:text-[8px];
+    @apply before:text-white;
+}
+
+.form-note {
+    @apply mt-2;
+    @apply text-gray-400;
+    @apply text-sm;
+}

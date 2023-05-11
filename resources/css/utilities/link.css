@@ -1,0 +1,83 @@
+.link {
+    @apply text-blue-700;
+    @apply underline;
+}
+
+.link-hover {
+    @apply text-blue-800;
+}
+
+.link:hover {
+    @apply link-hover;
+}
+
+.links a {
+    @apply link;
+}
+
+.links a:hover {
+    @apply link-hover;
+}
+
+.link-dimmed {
+    @apply text-gray-600;
+    @apply underline;
+}
+
+.link-dimmed-hover {
+    @apply text-gray-500;
+}
+
+.link-dimmed:hover {
+    @apply link-dimmed-hover;
+}
+
+.links-dimmed a {
+    @apply link-dimmed;
+}
+
+.links-dimmed a:hover {
+    @apply link-dimmed-hover;
+}
+
+.link-danger {
+    @apply text-gray-600;
+    @apply underline;
+}
+
+.link-danger:hover {
+    @apply !text-red-600;
+    @apply underline;
+}
+
+.link-warning {
+    @apply text-orange-600;
+    @apply underline;
+}
+
+.link-warning:hover {
+    @apply !text-orange-700;
+    @apply underline;
+}
+
+.link-success {
+    @apply text-green-600;
+    @apply underline;
+}
+
+.link-success:hover {
+    @apply !text-green-700;
+    @apply underline;
+}
+
+.link-icon {
+    @apply text-blue-700;
+}
+
+.link-icon .icon-label-text {
+    @apply underline;
+}
+
+.link-icon:hover {
+    @apply text-blue-800;
+}

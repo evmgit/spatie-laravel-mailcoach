@@ -1,0 +1,21 @@
+.filters {
+    @apply flex;
+    @apply flex-wrap;
+    @apply gap-x-6;
+    @apply items-center;
+}
+
+.filters li a {
+    display: flex;
+    @apply h-10;
+    @apply pl-1;
+    @apply items-center;
+    @apply leading-none;
+    @apply text-sm;
+    @apply hover:text-blue-800;
+    @apply font-medium;
+}
+
+.filters li .filter-active {
+    @apply text-blue-700;
+}

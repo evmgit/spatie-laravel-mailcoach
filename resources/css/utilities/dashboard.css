@@ -1,0 +1,116 @@
+.dashboard-tile {
+    @apply bg-white;
+    @apply bg-clip-padding;
+    @apply shadow-lg;
+    @apply shadow-blue-600/5;
+    @apply rounded-md;
+    @apply border;
+    @apply border-indigo-900/10;
+    @apply overflow-hidden;
+    @apply px-6;
+    @apply pl-8;
+    @apply py-4;
+
+    @apply before:content-[''];
+    @apply before:absolute;
+    @apply before:w-2;
+    @apply before:h-full;
+    @apply before:top-0;
+    @apply before:left-0;
+    @apply before:bg-gradient-to-b;
+    @apply before:from-blue-500/10;
+    @apply before:to-indigo-500/20;
+    @apply before:rounded-l-md;
+    @apply before:transition;
+}
+
+.dashboard-tile-hover:hover {
+    @apply cursor-pointer;
+    @apply shadow-xl;
+    @apply shadow-blue-600/5;
+    @apply before:from-blue-500/70;
+    @apply before:to-indigo-500/80;
+    @apply transform;
+    @apply -translate-y-px;
+}
+
+.dashboard-tile.dashboard-tile-success {
+    @apply bg-gradient-to-r;
+    @apply from-green-600/10;
+    @apply to-green-600/5;
+    @apply shadow-green-600/5;
+
+    @apply before:from-green-500/80;
+    @apply before:to-green-500/90;
+}
+
+.dashboard-tile.dashboard-tile-success:hover {
+    @apply shadow-green-600/5;
+    @apply before:from-green-500/90;
+    @apply before:to-green-500;
+}
+
+.dashboard-tile.dashboard-tile-warning {
+    @apply bg-gradient-to-r;
+    @apply from-orange-600/10;
+    @apply to-orange-600/5;
+    @apply shadow-orange-600/5;
+
+    @apply before:from-orange-500/80;
+    @apply before:to-orange-500/90;
+}
+
+.dashboard-tile.dashboard-tile-warning:hover {
+    @apply shadow-orange-600/5;
+    @apply before:from-orange-500/90;
+    @apply before:to-orange-500;
+}
+
+.dashboard-tile.dashboard-tile-error {
+    @apply bg-gray-900;
+    @apply bg-gradient-to-r;
+    @apply from-red-500/10;
+    @apply text-white;
+    @apply shadow-red-600/5;
+
+    @apply before:from-red-500/80;
+    @apply before:to-red-500/90;
+}
+
+.dashboard-tile.dashbard-tile-error:hover {
+    @apply shadow-red-600/5;
+    @apply before:from-red-500/90;
+    @apply before:to-red-500;
+}
+
+.dashboard-title {
+    @apply font-extrabold;
+    @apply text-xl;
+    @apply mb-3;
+    @apply leading-tight;
+}
+
+.dashboard-label {
+    @apply font-semibold text-xs uppercase tracking-wider;
+    @apply text-indigo-900/50;
+}
+
+.dashboard-value {
+    @apply text-2xl;
+    @apply font-extrabold;
+}
+
+.dashboard-link {
+    @apply flex;
+    @apply flex-col;
+    @apply pointer-events-auto;
+    @apply hover:text-blue-700;
+}
+
+.dashboard-link:hover .dashboard-label {
+    @apply text-blue-700;
+}
+
+.dashboard-link:hover .dashboard-value {
+    @apply text-blue-700;
+}

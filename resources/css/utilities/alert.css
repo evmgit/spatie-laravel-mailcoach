@@ -1,0 +1,96 @@
+.alert {
+    @apply relative;
+    @apply px-7;
+    @apply py-5;
+    @apply rounded-md;
+    @apply bg-gradient-to-r;
+    @apply bg-gray-50;
+    @apply text-gray-800;
+
+    @apply before:content-[''];
+    @apply before:absolute;
+    @apply before:w-[6px];
+    @apply before:h-full;
+    @apply before:top-0;
+    @apply before:left-0;
+    @apply before:bg-gradient-to-b;
+    @apply before:rounded-l;
+}
+
+.alert.alert-flash {
+    @apply bg-gray-900;
+    @apply bg-gradient-to-r;
+    @apply text-white;
+}
+
+.alert-success {
+    @apply from-green-50/60;
+    @apply to-green-50/40;
+    @apply before:from-green-400;
+    @apply before:to-green-400/50;
+}
+
+.alert-success.alert-flash {
+    @apply from-green-500/10;
+}
+
+.alert-info {
+    @apply from-purple-50/60;
+    @apply to-purple-50/40;
+    @apply before:from-purple-400;
+    @apply before:to-purple-400/50;
+}
+
+.alert-warning {
+    @apply from-orange-50/60;
+    @apply to-orange-50/40;
+    @apply before:from-orange-400;
+    @apply before:to-orange-400/50;
+}
+
+.alert-danger,
+.alert-error {
+    @apply from-red-50/60;
+    @apply to-red-50/40;
+    @apply before:from-red-400;
+    @apply before:to-red-400/50;
+}
+
+.alert-danger.alert-flash,
+.alert-error.alert-flash {
+    @apply from-red-500/10;
+}
+
+.alert-empty {
+    @apply py-8;
+    @apply text-center;
+}
+
+.alert-countdown {
+    @apply absolute;
+    @apply pointer-events-none;
+    @apply left-0;
+    @apply bottom-0;
+    @apply h-full;
+    @apply left-[6px];
+    @apply right-0;
+    @apply transform;
+    @apply origin-bottom-right;
+    @apply bg-gradient-to-r;
+    @apply from-white/10;
+    @apply to-white/20;
+    animation: alert-countdown var(--alert-duration, 5s) linear forwards;
+}
+
+.alert-countdown--paused {
+    animation-play-state: paused;
+}
+
+@keyframes alert-countdown {
+    0% {
+        transform: scaleX(1);
+    }
+    100% {
+        transform: scaleX(0);
+    }
+}

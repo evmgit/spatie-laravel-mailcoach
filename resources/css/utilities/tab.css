@@ -1,0 +1,45 @@
+.tabs {
+    overflow-x: scroll;
+    z-index: 1;
+    @apply mb-6;
+}
+
+.tabs::-webkit-scrollbar {
+    height: 0px; /* Remove scrollbar space */
+    background: transparent; /* Optional: just make scrollbar invisible */
+}
+
+.tabs ul {
+    @apply flex;
+    @apply gap-6;
+    @apply items-center;
+}
+
+.tabs li a {
+    display: flex;
+    @apply h-10;
+    @apply pl-1;
+    @apply items-center;
+    @apply leading-none;
+    @apply text-sm;
+    @apply text-black;
+    @apply hover:text-blue-800;
+    @apply font-medium;
+}
+
+.tabs li.navigation-item-active a {
+    @apply text-blue-700;
+}
+
+.tabs li.navigation-item-active a:after {
+    content: '';
+    @apply absolute;
+    @apply left-0;
+    @apply bottom-0;
+    @apply h-[3px];
+    @apply w-full;
+    @apply rounded-full;
+    @apply bg-gradient-to-r;
+    @apply from-blue-400;
+    @apply to-indigo-500;
+}

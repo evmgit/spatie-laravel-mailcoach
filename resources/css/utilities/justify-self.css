@@ -1,0 +1,13 @@
+@layer utilities {
+    .justify-self-start {
+        justify-self: flex-start;
+    }
+
+    .justify-self-end {
+        justify-self: flex-end;
+    }
+
+    .justify-self-center {
+        justify-self: center;
+    }
+}

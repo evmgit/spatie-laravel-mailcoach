@@ -1,0 +1,82 @@
+.dropdown {
+    @apply inline-flex;
+}
+
+.dropdown-list {
+    @apply absolute;
+    @apply left-1/2;
+    @apply top-full;
+    @apply -translate-x-1/2;
+    @apply py-3;
+    @apply rounded;
+    @apply transition-opacity;
+    @apply duration-200;
+    @apply z-50;
+    @apply min-w-32;
+    @apply will-change-auto;
+    @apply bg-white;
+    @apply rounded;
+    @apply shadow-xl;
+    @apply shadow-blue-800/10;
+    @apply border;
+    @apply border-indigo-900/10;
+}
+
+.dropdown-list-left {
+    transform: translateX(calc(-100% + 1.725rem));
+}
+
+.dropdown-list-right {
+    transform: translateX(-1.725rem);
+}
+
+.dropdown-list:before {
+    content: '';
+    @apply absolute;
+    @apply top-0;
+    @apply left-1/2;
+    @apply -translate-x-1/2;
+    @apply w-3;
+    @apply h-3;
+    @apply bg-white;
+    @apply -translate-y-1/2;
+    @apply rotate-45;
+    @apply border-l;
+    @apply border-t;
+    @apply border-indigo-900/10;
+}
+
+.dropdown-list-left:before {
+    right: 0;
+    left: auto;
+    @apply -translate-x-5;
+}
+
+.dropdown-list-right:before {
+    left: 0;
+    @apply translate-x-5;
+}
+
+.dropdown-list li {
+    @apply block;
+}
+
+.dropdown-list a,
+.dropdown-list button {
+    @apply block;
+    @apply w-full;
+    @apply py-2;
+    @apply px-4;
+    @apply text-sm;
+    @apply text-gray-800;
+    @apply font-normal;
+    @apply hover:bg-gradient-to-r;
+    @apply hover:from-blue-50;
+    @apply hover:to-blue-100/70;
+    @apply hover:text-blue-900;
+    @apply no-underline;
+}
+
+.dropdown-list li.active a {
+    @apply text-blue-700;
+}

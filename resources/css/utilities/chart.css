@@ -1,0 +1,31 @@
+.chart-tooltip-container {
+    @apply absolute top-0 bottom-0 w-8 -ml-4 z-10;
+}
+
+.chart-tooltip {
+    @apply hidden absolute left-0 ml-4 text-xs text-white bg-black rounded p-1 leading-tight whitespace-nowrap;
+    top: -2rem;
+    transform: translateX(-50%);
+}
+
+.chart-tooltip:after {
+    @apply absolute block;
+    border: 5px solid transparent;
+    border-top-color: theme('colors.black');
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    content: '';
+}
+
+.chart-tooltip-container:hover .chart-tooltip {
+    @apply block;
+}
+
+.chart-tooltip-legend {
+    @apply inline-block w-2 h-2 rounded-full;
+}
+
+.chart-label-y {
+    @apply absolute right-0 w-10 -mr-12 -mt-1 text-xs text-gray-400;
+}

@@ -1,0 +1,159 @@
+.button,
+input[type='file']::file-selector-button {
+    @apply px-6;
+    @apply h-10;
+    @apply bg-blue-800;
+    @apply bg-gradient-to-b;
+    @apply from-indigo-700/10;
+    @apply via-blue-700;
+    @apply to-indigo-700/50;
+    @apply text-white/90;
+    @apply whitespace-nowrap;
+    @apply rounded-md;
+    @apply shadow-md;
+    @apply shadow-blue-800/20;
+    @apply font-bold;
+    @apply transition-[background-position,border];
+    @apply duration-[50ms];
+    @apply border;
+    @apply border-t-white/30;
+    @apply border-l-white/30;
+    @apply border-r-black/10;
+    @apply border-b-black/10;
+    background-position: 0 100%;
+    background-size: 100% 200%;
+    @apply tracking-wide;
+}
+
+input[type='file'] {
+    @apply input;
+    @apply rounded-l-md;
+    @apply text-indigo-900/50;
+}
+input[type='file']::file-selector-button {
+    @apply rounded-r-none;
+    @apply relative;
+    @apply -left-3;
+}
+
+.button:disabled {
+    @apply opacity-50;
+    @apply cursor-not-allowed;
+}
+
+.button:not(:disabled):hover,
+.button:not(:disabled):focus,
+.button.dropdown-trigger-open {
+    @apply text-white;
+    @apply border-t-black/10;
+    @apply border-l-black/10;
+    @apply border-r-white/30;
+    @apply border-b-white/30;
+    background-position: 0 0;
+}
+
+.button:not(:disabled):focus {
+    @apply border-blue-500;
+}
+
+.button:not(:disabled):active {
+    @apply shadow-inner;
+    @apply translate-y-px;
+    @apply border-t-black/10;
+    @apply border-l-black/10;
+    @apply border-r-white/30;
+    @apply border-b-white/30;
+}
+
+.button-secondary {
+    @apply py-2;
+    @apply underline;
+    @apply whitespace-nowrap;
+    @apply text-blue-700;
+    @apply shadow-none;
+    transition: background-color 0.15s ease;
+}
+
+.button-secondary:disabled {
+    @apply opacity-50;
+    @apply cursor-not-allowed;
+}
+
+.button-secondary:not(:disabled):hover,
+.button-secondary:not(:disabled):focus {
+    @apply text-blue-800;
+}
+
+.button-secondary:not(:disabled):active {
+    @apply translate-y-px;
+}
+
+.button + .button {
+    @apply ml-2;
+}
+
+.button + .button-secondary,
+.button + .button-cancel,
+.button-secondary + .button-secondary {
+    @apply ml-4;
+}
+
+.button-cancel {
+    @apply link-dimmed;
+}
+
+.button-cancel:hover,
+.button-cancel:focus {
+    @apply link-dimmed-hover;
+}
+
+.button-red {
+    @apply from-red-500;
+    @apply to-red-600;
+}
+
+.button-red:not(:disabled):hover,
+.button-red:not(:disabled):focus,
+.button-red.dropdown-trigger-open {
+    @apply from-red-600;
+    @apply to-red-700;
+}
+
+.button.button-rounded {
+    @apply p-0;
+    @apply h-6;
+    @apply w-6;
+    @apply flex;
+    @apply items-center;
+    @apply justify-center;
+    @apply rounded-full;
+    @apply text-sm;
+    @apply text-white;
+}
+
+.button.button-green {
+    @apply bg-green-800;
+    @apply from-green-700/30;
+    @apply via-green-700;
+    @apply to-green-700/50;
+    @apply shadow-md;
+    @apply shadow-green-800/20;
+}
+
+.button.button-green {
+    @apply bg-green-700;
+    @apply from-green-600/30;
+    @apply via-green-600;
+    @apply to-green-600/50;
+    @apply shadow-md;
+    @apply shadow-green-800/20;
+}
+
+.button.button-orange {
+    @apply bg-orange-700;
+    @apply from-orange-600/30;
+    @apply via-orange-600;
+    @apply to-orange-600/50;
+    @apply shadow-md;
+    @apply shadow-orange-800/20;
+}

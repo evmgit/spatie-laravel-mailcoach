@@ -1,0 +1,9 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+USER=`whoami`
+
+if grep -e '^commit' -e '^wip' $1; then
+    printf "$(tput setaf 1)\nHey $USER, please use a meaningful commit message! Future $USER will thank you!\n\n$(tput sgr 0)"
+    exit 1
+fi

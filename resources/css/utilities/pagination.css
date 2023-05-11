@@ -1,0 +1,48 @@
+.pagination {
+    @apply grid;
+    @apply grid-cols-auto;
+    @apply grid-flow-col;
+    @apply justify-center;
+    @apply gap-3;
+}
+
+.page-item {
+    @apply hidden;
+    @apply rounded-full;
+    @apply items-center;
+    @apply justify-center;
+    @apply h-6;
+    @apply min-w-6;
+    @apply text-lg;
+}
+
+@screen sm {
+    .page-item {
+        @apply inline-flex;
+        @apply text-sm;
+    }
+}
+
+.page-item.disabled {
+    @apply opacity-50;
+}
+
+.page-item:not(.disabled):not(.active):hover {
+    @apply bg-gray-100;
+}
+
+.page-item:first-child,
+.page-item:last-child {
+    @apply inline-flex;
+}
+
+.page-item.active {
+    @apply inline-flex;
+}
+
+@screen sm {
+    .page-item.active {
+        @apply bg-blue-500;
+        @apply text-white;
+    }
+}
