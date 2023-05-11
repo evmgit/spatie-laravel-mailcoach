@@ -24,7 +24,7 @@
         "ext-libxml": "*",
         "ext-zip": "*",
         "cakephp/chronos": "^2.0",
-        "laravel/ui": "^4.0",
+        "laravel/ui": "^3.0",
         "league/html-to-markdown": "^4.10|^5.0",
         "paragonie/ciphersweet": "^4.0",
         "spatie/laravel-ciphersweet": "^1.0",
