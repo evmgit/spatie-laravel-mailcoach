@@ -30,7 +30,6 @@
         "illuminate/events": "^9.0",
         "illuminate/mail": "^9.0",
         "illuminate/queue": "^9.0",
-        "illuminate/redis": "^9.0",
         "illuminate/support": "^9.0",
         "laravel/horizon": "^5.0",
         "laravel/sanctum": "^3.0",
