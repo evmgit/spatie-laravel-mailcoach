@@ -3,13 +3,15 @@
     type="checkbox"
     name="{{ $name }}"
     id="{{ $name }}"
-    value="{{ $value ?? 1 }}"
-    @if(old($name, $checked ?? false)) checked @endif
+    value="1"
+    class="checkbox"
+    @isset($dataConditional) data-conditional="{{ $dataConditional }}" @endisset
+    @if(old($name, $checked)) checked @endif
     @if($disabled ?? false) disabled @endif
-    {{ $attributes->class('checkbox') }}
     >
     <span>{{ $label }}</span>
 </label>
 @error($name)
     <p class="form-error" role="alert">{{ $message }}</p>
 @enderror
+

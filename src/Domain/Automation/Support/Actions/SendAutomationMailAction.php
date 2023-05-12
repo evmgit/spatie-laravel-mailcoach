@@ -3,7 +3,7 @@
 namespace Spatie\Mailcoach\Domain\Automation\Support\Actions;
 
 use Illuminate\Queue\SerializesModels;
-use Spatie\Mailcoach\Domain\Automation\Models\ActionSubscriber;
+use Spatie\Mailcoach\Domain\Audience\Models\Subscriber;
 use Spatie\Mailcoach\Domain\Automation\Models\AutomationMail;
 use Spatie\Mailcoach\Domain\Automation\Support\Actions\Enums\ActionCategoryEnum;
 use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
@@ -17,12 +17,12 @@ class SendAutomationMailAction extends AutomationAction
 
     public static function getCategory(): ActionCategoryEnum
     {
-        return ActionCategoryEnum::React;
+        return ActionCategoryEnum::react();
     }
 
     public static function make(array $data): self
     {
-        return new self(self::getAutomationMailClass()::findOrFail($data['automation_mail_id']));
+        return new self(self::getAutomationMailClass()::find($data['automation_mail_id']));
     }
 
     public function __construct(AutomationMail $automationMail)
@@ -34,12 +34,12 @@ class SendAutomationMailAction extends AutomationAction
 
     public static function getComponent(): ?string
     {
-        return 'mailcoach::automation-mail-action';
+        return 'automation-mail-action';
     }
 
     public static function getName(): string
     {
-        return (string) __mc('Send an email');
+        return (string) __('Send an email');
     }
 
     public function toArray(): array
@@ -49,8 +49,8 @@ class SendAutomationMailAction extends AutomationAction
         ];
     }
 
-    public function run(ActionSubscriber $actionSubscriber): void
+    public function run(Subscriber $subscriber): void
     {
-        $this->automationMail->send($actionSubscriber);
+        $this->automationMail->send($subscriber);
     }
 }

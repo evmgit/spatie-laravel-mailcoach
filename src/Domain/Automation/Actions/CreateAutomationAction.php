@@ -13,7 +13,6 @@ class CreateAutomationAction
     {
         return $this->getAutomationClass()::create([
             'name' => $attributes['name'],
-            'email_list_id' => $attributes['email_list_id'] ?? null,
             'interval' => '10 minutes',
         ]);
     }

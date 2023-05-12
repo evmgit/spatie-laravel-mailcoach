@@ -6,9 +6,9 @@
     </div>
     <div class="text-sm">
         @if($href ?? null)
-            <a class="link-dimmed text-gray-800" href="{{$href}}">{!! $label !!}</a>
+            <a class="link-dimmed text-gray-800" href="{{$href}}">{{ $label }}</a>
         @else
-            {!! $label !!}
+            {{ $label }}
         @endif
     </div>
 </div>

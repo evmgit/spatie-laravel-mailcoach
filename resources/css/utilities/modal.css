@@ -10,7 +10,7 @@
 }
 
 .modal-wrapper {
-    @apply max-h-full;
+    @apply h-full;
     @apply w-full;
     @apply bg-white;
 }
@@ -79,7 +79,7 @@
     @apply items-center;
     @apply px-6;
     @apply py-4;
-    @apply bg-indigo-700/5;
+    @apply bg-gray-100;
 }
 
 @screen md {
@@ -94,10 +94,8 @@
 
 .modal-content {
     @apply flex-grow;
+    @apply overflow-x-hidden;
     @apply p-6;
-    @apply flex;
-    @apply flex-col;
-    @apply gap-y-6;
     max-width: 100vw;
 }
 
@@ -109,10 +107,4 @@
 
 .modal-wrapper-lg .modal-content {
     @apply p-0 !important;
-}
-
-/* Intersection Observer in modals doesn't work atm */
-.modal-content .form-buttons {
-    @apply !relative;
-    @apply !pt-0;
 }

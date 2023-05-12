@@ -1,144 +1,116 @@
-<?php
-    $pendingImportsCount = \Spatie\Mailcoach\Mailcoach::getSubscriberImportClass()::query()
-        ->where('email_list_id', $emailList->id)
-        ->whereIn('status', [
-            \Spatie\Mailcoach\Domain\Audience\Enums\SubscriberImportStatus::Pending,
-            \Spatie\Mailcoach\Domain\Audience\Enums\SubscriberImportStatus::Importing,
-        ])
-        ->count()
-?>
-
-<div @if(! $showForm) wire:poll.5s @endif>
-    <x-mailcoach::data-table
-        name="subscriberImports"
-        :rows="$subscriberImports ?? null"
-        :total-rows-count="$allSubscriberImportsCount ?? null"
-        row-partial="mailcoach::app.emailLists.subscribers.partials.import-row"
-        :empty-text="__mc('No imports yet')"
-        :searchable="false"
-        :columns="[
-            ['class' => 'w-32', 'attribute' => 'status', 'label' => __mc('Status')],
-            ['class' => 'w-48 th-numeric', 'attribute' => 'created_at', 'label' => __mc('Started at')],
-            ['class' => 'th-numeric', 'attribute' => 'imported_subscribers_count', 'label' => __mc('Processed rows')],
-            ['class' => 'th-numeric', 'label' => __mc('Errors')],
-            ['class' => 'w-12'],
-        ]"
-    />
-
-    <x-mailcoach::card class="mt-4">
-        @if ($showForm)
-            <form class="form-grid" method="POST" action="{{ route('mailcoach.emailLists.import-subscribers', $emailList) }}" x-cloak>
-                @csrf
-
-                <div class="form-field">
-                    @error('replace_tags')
-                    <p class="form-error">{{ $message }}</p>
-                    @enderror
-
-                    <div class="flex">
-                        <label class="label" for="tags_mode">
-                            {{ __mc('What should happen with tags on existing subscribers?') }}
-                        </label>
-                    </div>
-                    <div class="radio-group">
-                        <x-mailcoach::radio-field
-                            name="replace_tags"
-                            wire:model="replaceTags"
-                            option-value="append"
-                            :label="__mc('Append any new tags in the import')"
-                        />
-                        <x-mailcoach::radio-field
-                            name="replace_tags"
-                            wire:model="replaceTags"
-                            option-value="replace"
-                            :label="__mc('Replace all tags by the tags in the import')"
-                        />
-                    </div>
-                </div>
-
-                <div class="form-field">
-                    @error('subscribeUnsubscribed')
-                    <p class="form-error">{{ $message }}</p>
-                    @enderror
-
-                    <div class="radio-group">
-                        <x-mailcoach::checkbox-field
-                            name="subscribeUnsubscribed"
-                            wire:model="subscribeUnsubscribed"
-                            :label="__mc('Re-subscribe unsubscribed emails')"
-                        />
-                    </div>
-                </div>
-
-                @if ($subscribeUnsubscribed)
-                    <x-mailcoach::warning>
-                        {{ __mc('Make sure you have proper consent of the subscribers you\'re resubscribing.') }}
-                    </x-mailcoach::warning>
-                @endif
-
-                <div class="form-field">
-                    @error('unsubscribeMissing')
-                    <p class="form-error">{{ $message }}</p>
-                    @enderror
-
-                    <div class="radio-group">
-                        <x-mailcoach::checkbox-field
-                            name="unsubscribeMissing"
-                            wire:model="unsubscribeMissing"
-                            :label="__mc('Unsubscribe missing emails')"
-                        />
-                    </div>
-                </div>
-
-                @if ($unsubscribeMissing)
-                    <x-mailcoach::warning>
-                        {{ __mc('This is a dangerous operation, make sure you upload the correct import list') }}
-                    </x-mailcoach::warning>
-                @endif
-
-                <div class="flex gap-6">
-                    <div>
-                        <input accept=".csv,.txt,.xlsx" type="file" wire:model="file" />
-                        @error('file')
-                        <p class="form-error mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div class="flex items-center h-10">
-                        <i class="far fa-arrow-right text-blue-300"></i>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <x-mailcoach::button wire:click.prevent="upload" :label="__mc('Import subscribers')" :disabled="!$file" />
-                        <div wire:loading.delay wire:target="file">
-                            <style>
-                                @keyframes loadingpulse {
-                                    0%   {transform: scale(.8); opacity: .75}
-                                    100% {transform: scale(1); opacity: .9}
-                                }
-                            </style>
-                            <span
-                                style="animation: loadingpulse 0.75s alternate infinite ease-in-out;"
-                                class="group w-8 h-8 inline-flex items-center justify-center bg-gradient-to-b from-blue-500 to-blue-600 text-white rounded-full">
-                            <span class="flex items-center justify-center w-6 h-6 transform group-hover:scale-90 transition-transform duration-150">
-                                @include('mailcoach::app.layouts.partials.logoSvg')
-                            </span>
-                        </span>
-                            <span class="ml-1 text-gray-700">Uploading...</span>
-                        </div>
-                    </div>
-                </div>
-
-                <x-mailcoach::info>
-                    {!! __mc('Upload a CSV or XLSX file with these columns: email, first_name, last_name, tags <a href=":link" target="_blank">(see documentation)</a>', ['link' => 'https://mailcoach.app/docs/v5/mailcoach/using-mailcoach/audience#content-importing-subscribers']) !!}
-                    &mdash; <a href="#" wire:click.prevent="downloadExample" class="link">{{ __mc('Download example') }}</a>
-                </x-mailcoach::info>
-                <x-mailcoach::info>
-                    {!! __mc('Mailcoach also supports the <a href=":url" target="_blank">Mailchimp CSV export</a> format for importing subscribers.', ['url' => 'https://mailchimp.com/help/view-export-contacts/#View_or_export_an_audience']) !!}
-                </x-mailcoach::info>
-            </form>
-        @else
-            <div>
-                <x-mailcoach::button wire:click.prevent="$set('showForm', true)" :label="__mc('New import')" />
-            </div>
+<x-mailcoach::layout-list :title="__('Import subscribers')" :emailList="$emailList">
+        @if (count($subscriberImports))
+            <table class="table table-fixed mb-12">
+                <thead>
+                <tr>
+                    <th class="w-32">{{ __('Status') }}</th>
+                    <th class="w-48 th-numeric">{{ __('Started at') }}</th>
+                    <th>{{ __('List') }}</th>
+                    <th class="w-56 th-numeric">{{ __('Imported subscribers') }}</th>
+                    <th class="w-32 th-numeric">{{ __('Errors') }}</th>
+                    <th class="w-12"></th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach($subscriberImports as $subscriberImport)
+                    <tr>
+                        <td>
+                            @switch($subscriberImport->status)
+                                @case(\Spatie\Mailcoach\Domain\Audience\Enums\SubscriberImportStatus::PENDING)
+                                <i title="{{ __('Scheduled') }}" class="far fa-clock text-orange-500`"></i>
+                                @break
+                                @case(\Spatie\Mailcoach\Domain\Audience\Enums\SubscriberImportStatus::IMPORTING)
+                                <i title="{{ __('Importing') }}" class="fas fa-sync fa-spin text-blue-500"></i>
+                                @break
+                                @case(\Spatie\Mailcoach\Domain\Audience\Enums\SubscriberImportStatus::COMPLETED)
+                                <i title="{{ __('Completed') }}" class="fas fa-check text-green-500"></i>
+                                @break
+                            @endswitch
+                        </td>
+                        <td class="td-numeric">
+                            {{ $subscriberImport->created_at->toMailcoachFormat() }}
+                        </td>
+                        <td>{{ $subscriberImport->emailList->name }}</td>
+                        <td class="td-numeric">{{ $subscriberImport->imported_subscribers_count }}</td>
+                        <td class="td-numeric">{{ $subscriberImport->error_count }}</td>
+                        <td class="td-action">
+                            <x-mailcoach::dropdown direction="left">
+                                <ul>
+                                    <li>
+                                        <a href="{{ route('mailcoach.subscriberImport.downloadAttachment', [$subscriberImport, 'importedUsersReport']) }}" download>
+                                            <x-mailcoach::icon-label icon="far fa-list-alt" :text="__('Import report')"/>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('mailcoach.subscriberImport.downloadAttachment', [$subscriberImport, 'errorReport']) }}" download>
+                                            <x-mailcoach::icon-label icon="far fa-times-circle" :text="__('Error report')"/>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('mailcoach.subscriberImport.downloadAttachment', [$subscriberImport, 'importFile']) }}" download>
+                                            <x-mailcoach::icon-label icon="far fa-file" :text="__('Uploaded file')"/>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <x-mailcoach::form-button
+                                            :action="route('mailcoach.subscriberImport.delete', $subscriberImport->id)"
+                                            method="DELETE" class="link-delete">
+                                            <x-mailcoach::icon-label icon="far fa-trash-alt" :text="__('Delete')" :caution="true"/>
+                                        </x-mailcoach::form-button>
+                                    </li>
+                                </ul>
+                            </x-mailcoach::dropdown>
+                        </td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
         @endif
-    </x-mailcoach::card>
-</div>
+
+        <form class="form-grid" enctype="multipart/form-data" method="POST"
+              action="{{ route('mailcoach.emailLists.import-subscribers', $emailList) }}">
+            @csrf
+
+            <div class="form-field">
+                @error('replace_tags')
+                <p class="form-error">{{ $message }}</p>
+                @enderror
+
+                <label class="label label-required" for="tags_mode">
+                    {{ __('Tags') }}
+                </label>
+                <div class="radio-group">
+                    <x-mailcoach::radio-field
+                        name="replace_tags"
+                        option-value="append"
+                        :value="true"
+                        :label="__('Append')"
+                    />
+                    <x-mailcoach::radio-field
+                        name="replace_tags"
+                        option-value="replace"
+                        :label="__('Replace')"
+                    />
+                </div>
+            </div>
+
+            <div class="form-buttons">
+                <div class="button">
+                    <button class="font-semibold h-10" type="submit">
+                        {{ __('Import subscribers') }}
+                    </button>
+                    <input onchange="this.form.submit();" class="absolute inset-0 opacity-0 text-4xl" accept=".csv, .xlsx" type="file" id="file"
+                        name="file" class="w-48 h-10"/>
+                </div>
+            </div>
+
+            @error('file')
+            <p class="form-error">{{ $message }}</p>
+            @enderror
+
+            <x-mailcoach::help>
+                {!! __('Upload a CSV or XLSX file with these columns: email, first_name, last_name, tags <a href=":link" target="_blank">(see documentation)</a>', ['link' => 'https://spatie.be/docs/laravel-mailcoach/v4/using-mailcoach/audience#importing-subscribers']) !!}
+            </x-mailcoach::help>
+        </form>
+
+</x-mailcoach::layout-list>

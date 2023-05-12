@@ -1,7 +1,7 @@
 <x-mailcoach::automation-action :index="$index" :action="$action" :editing="$editing" :editable="$editable" :deletable="$deletable">
     <x-slot name="legend">
-        {{__mc('Wait for') }}
-        <span class="form-legend-accent">
+        {{__('Wait for') }}
+        <span class="legend-accent">
             @php
             try {
                 echo ($length && $unit && $interval = \Carbon\CarbonInterval::$unit($length)) ? $interval->cascade()->forHumans() : '…';
@@ -15,7 +15,7 @@
     <x-slot name="form">
         <div class="col-span-8 sm:col-span-4">
             <x-mailcoach::text-field
-                :label="__mc('Length')"
+                :label="__('Length')"
                 :required="true"
                 name="length"
                 wire:model="length"
@@ -25,7 +25,7 @@
 
         <div class="col-span-4 sm:col-span-2">
         <x-mailcoach::select-field
-            :label="__mc('Unit')"
+            :label="__('Unit')"
             :required="true"
             name="unit"
             wire:model="unit"

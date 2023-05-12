@@ -12,9 +12,8 @@ class SubscriberReplacer implements PersonalizedReplacer
     public function helpText(): array
     {
         return [
-            'subscriber.first_name' => __mc('The first name of the subscriber'),
-            'subscriber.last_name' => __mc('The last name of the subscriber'),
-            'subscriber.email' => __mc('The email of the subscriber'),
+            'subscriber.first_name' => __('The first name of the subscriber'),
+            'subscriber.email' => __('The email of the subscriber'),
         ];
     }
 

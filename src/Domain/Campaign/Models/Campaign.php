@@ -4,32 +4,27 @@ namespace Spatie\Mailcoach\Domain\Campaign\Models;
 
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Str;
-use League\HTMLToMarkdown\HtmlConverter;
 use Spatie\Feed\Feedable;
 use Spatie\Feed\FeedItem;
 use Spatie\Mailcoach\Database\Factories\CampaignFactory;
 use Spatie\Mailcoach\Domain\Audience\Models\EmailList;
 use Spatie\Mailcoach\Domain\Audience\Models\Subscriber;
-use Spatie\Mailcoach\Domain\Campaign\Actions\ValidateCampaignRequirementsAction;
 use Spatie\Mailcoach\Domain\Campaign\Enums\CampaignStatus;
 use Spatie\Mailcoach\Domain\Campaign\Enums\SendFeedbackType;
 use Spatie\Mailcoach\Domain\Campaign\Exceptions\CouldNotSendCampaign;
 use Spatie\Mailcoach\Domain\Campaign\Exceptions\CouldNotUpdateCampaign;
+use Spatie\Mailcoach\Domain\Campaign\Jobs\SendCampaignJob;
 use Spatie\Mailcoach\Domain\Campaign\Jobs\SendCampaignTestJob;
 use Spatie\Mailcoach\Domain\Campaign\Models\Concerns\CanBeScheduled;
 use Spatie\Mailcoach\Domain\Campaign\Models\Concerns\SendsToSegment;
-use Spatie\Mailcoach\Domain\Settings\Models\Mailer;
-use Spatie\Mailcoach\Domain\Shared\Actions\CreateDomDocumentFromHtmlAction;
-use Spatie\Mailcoach\Domain\Shared\Actions\RenderMarkdownToHtmlAction;
 use Spatie\Mailcoach\Domain\Shared\Jobs\CalculateStatisticsJob;
 use Spatie\Mailcoach\Domain\Shared\Mails\MailcoachMail;
 use Spatie\Mailcoach\Domain\Shared\Models\Sendable;
-use Spatie\Mailcoach\Mailcoach;
-use Throwable;
+use Spatie\Mailcoach\Domain\Shared\Models\SendFeedbackItem;
+use Spatie\Mailcoach\Domain\Shared\Support\CalculateStatisticsLock;
 use TijsVerkoyen\CssToInlineStyles\CssToInlineStyles;
 
 class Campaign extends Sendable implements Feedable
@@ -43,20 +38,15 @@ class Campaign extends Sendable implements Feedable
         'sent_to_number_of_subscribers' => 'integer',
         'scheduled_at' => 'datetime',
         'campaigns_feed_enabled' => 'boolean',
-        'add_subscriber_tags' => 'boolean',
-        'add_subscriber_link_tags' => 'boolean',
-        'all_sends_created_at' => 'datetime',
-        'all_sends_dispatched_at' => 'datetime',
+        'all_jobs_added_to_batch_at' => 'datetime',
         'summary_mail_sent_at' => 'datetime',
-        'status' => CampaignStatus::class,
-        'show_publicly' => 'boolean',
     ];
 
     public static function booted()
     {
         static::creating(function (Campaign $campaign) {
             if (! $campaign->status) {
-                $campaign->status = CampaignStatus::Draft;
+                $campaign->status = CampaignStatus::DRAFT;
             }
         });
     }
@@ -64,9 +54,6 @@ class Campaign extends Sendable implements Feedable
     public static function scopeSentBetween(Builder $query, CarbonInterface $periodStart, CarbonInterface $periodEnd): void
     {
         $query
-            ->whereNotNull('sent_at')
-            ->whereNotNull('all_sends_dispatched_at')
-            ->whereNotNull('all_sends_created_at')
             ->where('sent_at', '>=', $periodStart)
             ->where('sent_at', '<', $periodEnd);
     }
@@ -74,26 +61,14 @@ class Campaign extends Sendable implements Feedable
     public function scopeDraft(Builder $query): void
     {
         $query
-            ->where('status', CampaignStatus::Draft)
+            ->where('status', CampaignStatus::DRAFT)
             ->whereNull('scheduled_at')
             ->orderBy('created_at');
     }
 
     public function scopeSendingOrSent(Builder $query): void
     {
-        $query->whereIn('status', [CampaignStatus::Sending, CampaignStatus::Sent]);
-    }
-
-    public function scopeShowPublicly(Builder $query): void
-    {
-        $query
-            ->sendingOrSent()
-            ->where('show_publicly', true);
-    }
-
-    public function scopeSending(Builder $query): void
-    {
-        $query->where('status', CampaignStatus::Sending);
+        $query->whereIn('status', [CampaignStatus::SENDING, CampaignStatus::SENT]);
     }
 
     public function scopeNeedsSummaryToBeReported(Builder $query)
@@ -108,7 +83,7 @@ class Campaign extends Sendable implements Feedable
 
     public function scopeSent(Builder $query): void
     {
-        $query->where('status', CampaignStatus::Sent);
+        $query->where('status', CampaignStatus::SENT);
     }
 
     public function scopeSentDaysAgo(Builder $query, int $daysAgo)
@@ -118,11 +93,6 @@ class Campaign extends Sendable implements Feedable
             ->where('sent_at', '<=', now()->subDays($daysAgo)->toDateTimeString());
     }
 
-    public function template(): BelongsTo
-    {
-        return $this->belongsTo($this->getTemplateClass());
-    }
-
     public function links(): HasMany
     {
         return $this->hasMany(static::getCampaignLinkClass(), 'campaign_id');
@@ -130,76 +100,36 @@ class Campaign extends Sendable implements Feedable
 
     public function clicks(): HasManyThrough
     {
-        return $this->hasManyThrough(self::getCampaignClickClass(), self::getCampaignLinkClass(), 'campaign_id');
+        return $this->hasManyThrough(static::getCampaignClickClass(), static::getCampaignLinkClass(), 'campaign_id');
     }
 
     public function opens(): HasMany
     {
-        return $this->hasMany(self::getCampaignOpenClass(), 'campaign_id');
+        return $this->hasMany(static::getCampaignOpenClass(), 'campaign_id');
     }
 
     public function sends(): HasMany
     {
-        return $this->hasMany(self::getSendClass(), 'campaign_id');
+        return $this->hasMany($this->getSendClass(), 'campaign_id');
     }
 
     public function unsubscribes(): HasMany
     {
-        return $this->hasMany(self::getCampaignUnsubscribeClass(), 'campaign_id');
+        return $this->hasMany(static::getCampaignUnsubscribeClass(), 'campaign_id');
     }
 
     public function bounces(): HasManyThrough
     {
         return $this
-            ->hasManyThrough(self::getSendFeedbackItemClass(), self::getSendClass(), 'campaign_id')
-            ->where('type', SendFeedbackType::Bounce);
+            ->hasManyThrough(SendFeedbackItem::class, $this->getSendClass(), 'campaign_id')
+            ->where('type', SendFeedbackType::BOUNCE);
     }
 
     public function complaints(): HasManyThrough
     {
         return $this
-            ->hasManyThrough(self::getSendFeedbackItemClass(), self::getSendClass(), 'campaign_id')
-            ->where('type', SendFeedbackType::Complaint);
-    }
-
-    /**
-     * Returns a tuple with open & click tracking values
-     *
-     * @return array
-     */
-    public function tracking(): array
-    {
-        $mailer = $this->getMailer();
-
-        if (! $this->emailList) {
-            return [null, null];
-        }
-
-        return [
-            $mailer?->get('open_tracking_enabled', false),
-            $mailer?->get('click_tracking_enabled', false),
-        ];
-    }
-
-    public function getMailerKey(): ?string
-    {
-        return $this->emailList->campaign_mailer
-            ?? Mailcoach::defaultCampaignMailer();
-    }
-
-    public function getMailer(): ?Mailer
-    {
-        $mailerClass = config('mailcoach.models.mailer');
-
-        if (! class_exists($mailerClass)) {
-            return null;
-        }
-
-        if (! $mailerKey = $this->getMailerKey()) {
-            return null;
-        }
-
-        return $mailerClass::all()->first(fn ($mailerModel) => $mailerModel->configName() === $mailerKey);
+            ->hasManyThrough(SendFeedbackItem::class, $this->getSendClass(), 'campaign_id')
+            ->where('type', SendFeedbackType::COMPLAINT);
     }
 
     public function isReady(): bool
@@ -224,26 +154,14 @@ class Campaign extends Sendable implements Feedable
             return false;
         }
 
-        if (! $this->getMailerKey()) {
-            return false;
-        }
-
-        return count($this->validateRequirements()) === 0;
-    }
-
-    public function validateRequirements(): array
-    {
-        /** @var ValidateCampaignRequirementsAction $action */
-        $action = Mailcoach::getCampaignActionClass('validate_campaign_requirements', ValidateCampaignRequirementsAction::class);
-
-        return $action->execute($this);
+        return true;
     }
 
     public function isPending(): bool
     {
         return ! in_array($this->status, [
-            CampaignStatus::Sending,
-            CampaignStatus::Sent,
+            CampaignStatus::SENDING,
+            CampaignStatus::SENT,
         ]);
     }
 
@@ -259,10 +177,6 @@ class Campaign extends Sendable implements Feedable
         }
 
         if ($this->isSent()) {
-            return false;
-        }
-
-        if ($this->isCancelled()) {
             return false;
         }
 
@@ -319,23 +233,28 @@ class Campaign extends Sendable implements Feedable
 
         if (empty($this->from_email)) {
             $this->from_email = $this->emailList->default_from_email;
+            $this->save();
         }
 
         if (empty($this->from_name)) {
             $this->from_name = $this->emailList->default_from_name;
+            $this->save();
         }
 
         if (empty($this->reply_to_email)) {
             $this->reply_to_email = $this->emailList->default_reply_to_email;
+            $this->save();
         }
 
         if (empty($this->reply_to_name)) {
             $this->reply_to_name = $this->emailList->default_reply_to_name;
+            $this->save();
         }
 
-        $this->segment_description = $this->getSegment()->description();
-        $this->last_modified_at = now();
-        $this->save();
+        $this->update([
+            'segment_description' => $this->getSegment()->description(),
+            'last_modified_at' => now(),
+        ]);
 
         if ($this->hasCustomMailable()) {
             $this->pullSubjectFromMailable();
@@ -345,15 +264,7 @@ class Campaign extends Sendable implements Feedable
 
         $this->markAsSending();
 
-        return $this;
-    }
-
-    public function cancel(): self
-    {
-        $this->update([
-            'status' => CampaignStatus::Cancelled,
-            'sent_at' => now(),
-        ]);
+        dispatch(new SendCampaignJob($this));
 
         return $this;
     }
@@ -396,16 +307,12 @@ class Campaign extends Sendable implements Feedable
         if (empty($this->html)) {
             throw CouldNotSendCampaign::noContent($this);
         }
-
-        if (count($this->validateRequirements()) > 0) {
-            throw CouldNotSendCampaign::requirementsNotMet($this);
-        }
     }
 
     public function markAsSent(int $numberOfSubscribers): self
     {
         $this->update([
-            'status' => CampaignStatus::Sent,
+            'status' => CampaignStatus::SENT,
             'sent_at' => now(),
             'statistics_calculated_at' => now(),
             'sent_to_number_of_subscribers' => $numberOfSubscribers,
@@ -424,14 +331,14 @@ class Campaign extends Sendable implements Feedable
         return $this->sends()->whereNotNull('sent_at')->where('subscriber_id', $subscriber->id)->exists();
     }
 
-    public function sendTestMail(string|array $emails): void
+    public function sendTestMail(string | array $emails): void
     {
         if ($this->hasCustomMailable()) {
             $this->pullSubjectFromMailable();
         }
 
         collect($emails)->each(function (string $email) {
-            dispatch_sync(new SendCampaignTestJob($this, $email));
+            dispatch(new SendCampaignTestJob($this, $email));
         });
     }
 
@@ -448,13 +355,23 @@ class Campaign extends Sendable implements Feedable
         return resolve($mailableClass, $mailableArguments);
     }
 
-    public function dispatchCalculateStatistics(): void
+    public function dispatchCalculateStatistics()
     {
-        if (! $this->isSendingOrSent() && ! $this->isCancelled()) {
+        $lock = new CalculateStatisticsLock($this);
+
+        if (! $lock->get()) {
             return;
         }
 
-        dispatch(new CalculateStatisticsJob($this));
+        $latestEvent = max(
+            $this->sends()->latest()->first()?->created_at,
+            $this->opens()->latest()->first()?->created_at,
+            $this->clicks()->latest()->first()?->created_at,
+        );
+
+        if (! $this->statistics_calculated_at || ($latestEvent && $latestEvent >= $this->statistics_calculated_at)) {
+            dispatch(new CalculateStatisticsJob($this));
+        }
     }
 
     public function toFeedItem(): FeedItem
@@ -481,16 +398,6 @@ class Campaign extends Sendable implements Feedable
     public function sendsCount(): int
     {
         return $this->sends()->whereNotNull('sent_at')->count();
-    }
-
-    public function sendsWithoutInvalidated(): HasMany
-    {
-        return $this->sends()->whereNull('invalidated_at');
-    }
-
-    public function sendsWithErrors(): HasMany
-    {
-        return $this->sends()->whereNotNull('failed_at');
     }
 
     public function wasSentToAllSubscribers(): bool
@@ -520,30 +427,52 @@ class Campaign extends Sendable implements Feedable
     protected function markAsSending(): self
     {
         $this->update([
-            'status' => CampaignStatus::Sending,
+            'status' => CampaignStatus::SENDING,
         ]);
 
         return $this;
     }
 
-    public function isDraft(): bool
+    public function hasTroublesSendingOutMails(): bool
     {
-        return $this->status === CampaignStatus::Draft;
+        if ($this->status !== CampaignStatus::SENDING) {
+            return false;
+        }
+
+        if (! $this->last_modified_at) {
+            return false;
+        }
+
+        if ($this->last_modified_at->diffInHours() < 1) {
+            return false;
+        }
+
+        $latestSend = $this
+            ->sends()
+            ->whereNotNull('sent_at')
+            ->orderByDesc('sent_at')
+            ->first();
+
+        if ($latestSend->sent_at->diffInHours() < 1) {
+            return false;
+        }
+
+        return true;
     }
 
-    public function isPreparing(): bool
+    public function isDraft(): bool
     {
-        return $this->isSending() && ! $this->sent_to_number_of_subscribers;
+        return $this->status === CampaignStatus::DRAFT;
     }
 
     public function isSending(): bool
     {
-        return $this->status == CampaignStatus::Sending;
+        return $this->status == CampaignStatus::SENDING;
     }
 
     public function isSent(): bool
     {
-        return $this->status == CampaignStatus::Sent;
+        return $this->status == CampaignStatus::SENT;
     }
 
     public function isSendingOrSent(): bool
@@ -553,7 +482,7 @@ class Campaign extends Sendable implements Feedable
 
     public function isCancelled(): bool
     {
-        return $this->status == CampaignStatus::Cancelled;
+        return $this->status == CampaignStatus::CANCELLED;
     }
 
     public function hasCustomMailable(): bool
@@ -576,87 +505,20 @@ class Campaign extends Sendable implements Feedable
         return (new CssToInlineStyles())->convert($html);
     }
 
-    public function getSummary(): string
+    public function resolveRouteBinding($value, $field = null)
     {
-        $html = preg_replace('#<a.*?>(.*?)</a>#i', '\1', $this->webview_html);
+        $field ??= $this->getRouteKeyName();
 
-        $converter = new HtmlConverter([
-            'strip_tags' => true,
-            'suppress_errors' => false,
-            'remove_nodes' => 'head script style img code hr',
-        ]);
-
-        try {
-            $text = $converter->convert($html);
-            $text = app(RenderMarkdownToHtmlAction::class)->execute($text);
-        } catch (Throwable) {
-            $text = $html;
-        }
-
-        $text = strip_tags($text, ['p', 'strong', 'em', 'b', 'i', 'br']);
-
-        $text = preg_replace('/=+/', '', $text);
-
-        return Str::limit($text, 300);
+        return $this->getCampaignClass()::where($field, $value)->firstOrFail();
     }
 
-    public function allSendsCreated(): bool
+    public function getBatchName(): string
     {
-        return ! is_null($this->all_sends_created_at);
-    }
-
-    public function markAsAllSendsCreated(): self
-    {
-        $this->update([
-            'all_sends_created_at' => now(),
-        ]);
-
-        return $this;
-    }
-
-    public function allMailSendingJobsDispatched(): bool
-    {
-        return ! is_null($this->all_sends_dispatched_at);
-    }
-
-    public function markAsAllMailSendingJobsDispatched(): self
-    {
-        $this->update([
-            'all_sends_dispatched_at' => now(),
-        ]);
-
-        return $this;
+        return Str::slug("{$this->name} ({$this->id})");
     }
 
     protected static function newFactory(): CampaignFactory
     {
         return new CampaignFactory();
-    }
-
-    public function getFieldContent(string $fieldName): string
-    {
-        return $this->fields?->get($fieldName) ?? '';
-    }
-
-    public function websiteUrl(): string
-    {
-        return route('mailcoach.website.campaign', [$this->emailList->website_slug, $this->uuid]);
-    }
-
-    public function websiteSummary(): ?string
-    {
-        if (! $this->webview_html) {
-            return null;
-        }
-
-        $document = app(CreateDomDocumentFromHtmlAction::class)->execute($this->webview_html);
-
-        $preheader = $document->getElementById('preheader');
-
-        if (! $preheader) {
-            return null;
-        }
-
-        return $preheader->textContent;
     }
 }

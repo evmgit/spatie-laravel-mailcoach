@@ -17,6 +17,6 @@ trait HasExtraAttributes
         /**
          * @psalm-suppress UndefinedMethod
          */
-        return $this->extra_attributes->modelScope();
+        return SchemalessAttributes::scopeWithSchemalessAttributes('extra_attributes');
     }
 }

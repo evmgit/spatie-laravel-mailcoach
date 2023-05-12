@@ -1,12 +1,12 @@
 @component('mailcoach::mails.layout.message')
-{{ __mc('Hey') }},
+{{ __('Hey') }},
 
-{{ __mc('You are almost subscribed to the list **:emailListName**.', ['emailListName'=>$subscriber->emailList->name]) }}
+{{ __('You are almost subscribed to the list **:emailListName**.', ['emailListName'=>$subscriber->emailList->name]) }}
 
-{{ __mc('Prove it is really you by pressing the button below') }}.
+{{ __('Prove it is really you by pressing the button below') }}.
 
 @component('mailcoach::mails.layout.button', ['url' => $confirmationUrl])
-{{ __mc('Confirm subscription') }}
+{{ __('Confirm subscription') }}
 @endcomponent
 
 @endcomponent

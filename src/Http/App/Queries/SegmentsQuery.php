@@ -2,7 +2,6 @@
 
 namespace Spatie\Mailcoach\Http\App\Queries;
 
-use Illuminate\Http\Request;
 use Spatie\Mailcoach\Domain\Audience\Models\EmailList;
 use Spatie\Mailcoach\Http\App\Queries\Filters\FuzzyFilter;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -10,11 +9,11 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class SegmentsQuery extends QueryBuilder
 {
-    public function __construct(EmailList $emailList, ?Request $request = null)
+    public function __construct(EmailList $emailList)
     {
         $query = $emailList->segments()->getQuery();
 
-        parent::__construct($query, $request);
+        parent::__construct($query);
 
         $this
             ->defaultSort('name')

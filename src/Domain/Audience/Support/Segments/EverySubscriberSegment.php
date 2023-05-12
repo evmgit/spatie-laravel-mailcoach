@@ -6,6 +6,6 @@ class EverySubscriberSegment extends Segment
 {
     public function description(): string
     {
-        return (string) __mc('all subscribers');
+        return (string)__('all subscribers');
     }
 }

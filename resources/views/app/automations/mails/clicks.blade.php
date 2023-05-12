@@ -1,24 +1,48 @@
-<div>
-    @if($mail->click_count)
-        @php(($links ?? collect())->map(fn ($link) => $link->setRelation('automationMail', $mail)))
-        <x-mailcoach::data-table
-            name="clicks"
-            :rows="$links ?? null"
-            :totalRowsCount="$totalLinksCount ?? null"
-            :columns="[
-                ['attribute' => 'link', 'label' => __mc('Link')],
-                ['label' => __mc('Tag')],
-                ['attribute' => '-unique_click_count', 'label' => __mc('Unique Clicks'), 'class' => 'w-32 th-numeric hidden | xl:table-cell'],
-                ['attribute' => '-click_count', 'label' => __mc('Clicks'), 'class' => 'w-32 th-numeric'],
-            ]"
-            rowPartial="mailcoach::app.automations.mails.partials.clickRow"
-            :emptyText="__mc('No clicks yet. Stay tuned.')"
-        />
+<x-mailcoach::layout-automation-mail :title="__('Clicks')" :mail="$mail">
+    @if($mail->track_clicks)
+        @if($mail->click_count)
+            <div class="table-actions">
+                <div class="table-filters">
+                    <x-mailcoach::search :placeholder="__('Filter clicks…')" />
+                </div>
+            </div>
+
+            <table class="table table-fixed">
+                <thead>
+                <tr>
+                    <x-mailcoach::th sort-by="link">{{ __('Link') }}</x-mailcoach::th>
+                    <x-mailcoach::th>{{ __('Tag') }}</x-mailcoach::th>
+
+                    <x-mailcoach::th sort-by="-unique_click_count" class="w-32 th-numeric hidden | xl:table-cell">{{ __('Unique Clicks') }}</x-mailcoach::th>
+                    <x-mailcoach::th sort-by="-click_count" class="w-32 th-numeric">{{ __('Clicks') }}</x-mailcoach::th>
+                <tr>
+                </thead>
+                <tbody>
+                @foreach($links as $link)
+                    <tr>
+                        <td class="markup-links"><a class="break-words" href="{{ $link->url }}">{{ $link->url }}</a></td>
+                        <td><span class="tag-neutral">{{ \Spatie\Mailcoach\Domain\Shared\Support\LinkHasher::hash($mail, $link->url) }}</span></td>
+                        <td class="td-numeric hidden | xl:table-cell">{{ $link->unique_click_count }}</td>
+                        <td class="td-numeric">{{ $link->click_count }}</td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
+
+            <x-mailcoach::table-status
+                :name="__('link|links')"
+                :paginator="$links"
+                :total-count="$totalLinksCount"
+                :show-all-url="route('mailcoach.automations.mails.clicks', $mail)"
+            ></x-mailcoach::table-status>
+        @else
+            <x-mailcoach::help>
+                {{ __('No clicks yet. Stay tuned.') }}
+            </x-mailcoach::help>
+        @endif
     @else
-        <x-mailcoach::card>
-            <x-mailcoach::info>
-                {{ __mc('No clicks tracked') }}
-            </x-mailcoach::info>
-        </x-mailcoach::card>
+        <x-mailcoach::help>
+            {{ __('Click tracking was not enabled for this email.') }}
+        </x-mailcoach::help>
     @endif
-</div>
+</x-mailcoach::layout-automation-mail>

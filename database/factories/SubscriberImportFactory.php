@@ -14,9 +14,10 @@ class SubscriberImportFactory extends Factory
     public function definition()
     {
         return [
-            'status' => SubscriberImportStatus::Completed,
+            'status' => SubscriberImportStatus::COMPLETED,
             'email_list_id' => EmailList::factory(),
             'imported_subscribers_count' => $this->faker->numberBetween(1, 1000),
+            'error_count' => $this->faker->numberBetween(1, 1000),
         ];
     }
 }

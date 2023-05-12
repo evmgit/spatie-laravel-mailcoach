@@ -8,7 +8,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Spatie\Mailcoach\Domain\Campaign\Actions\RetrySendingFailedSendsAction;
 use Spatie\Mailcoach\Domain\Campaign\Models\Campaign;
-use Spatie\Mailcoach\Mailcoach;
+use Spatie\Mailcoach\Domain\Shared\Support\Config;
 
 class RetrySendingFailedSendsJob
 {
@@ -28,13 +28,13 @@ class RetrySendingFailedSendsJob
 
         $this->queue = config('mailcoach.campaigns.perform_on_queue.send_campaign_job');
 
-        $this->connection = $this->connection ?? Mailcoach::getQueueConnection();
+        $this->connection = $this->connection ?? Config::getQueueConnection();
     }
 
     public function handle()
     {
         /** @var \Spatie\Mailcoach\Domain\Campaign\Actions\RetrySendingFailedSendsAction $retrySendingFailedSendsAction */
-        $retrySendingFailedSendsAction = Mailcoach::getCampaignActionClass('retry_sending_failed_sends', RetrySendingFailedSendsAction::class);
+        $retrySendingFailedSendsAction = Config::getCampaignActionClass('retry_sending_failed_sends', RetrySendingFailedSendsAction::class);
 
         $retrySendingFailedSendsAction->execute($this->campaign);
     }

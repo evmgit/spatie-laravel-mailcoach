@@ -5,23 +5,17 @@ namespace Spatie\Mailcoach\Domain\Audience\Mails;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Spatie\Mailcoach\Domain\Audience\Models\Subscriber;
-use Spatie\Mailcoach\Domain\Campaign\Actions\ConvertHtmlToTextAction;
 use Spatie\Mailcoach\Domain\Campaign\Mails\Concerns\ReplacesPlaceholders;
-use Spatie\Mailcoach\Domain\TransactionalMail\Mails\Concerns\UsesMailcoachTemplate;
-use Spatie\Mailcoach\Domain\TransactionalMail\Models\TransactionalMail;
 
 class ConfirmSubscriberMail extends Mailable implements ShouldQueue
 {
     use ReplacesPlaceholders;
-    use UsesMailcoachTemplate;
 
     public $theme = 'mailcoach::mails.layout.mailcoach';
 
     public Subscriber $subscriber;
 
     public string $confirmationUrl;
-
-    public ?TransactionalMail $confirmationMailTemplate = null;
 
     public function __construct(Subscriber $subscriber, string $redirectAfterConfirmedUrl = '')
     {
@@ -36,12 +30,6 @@ class ConfirmSubscriberMail extends Mailable implements ShouldQueue
 
     public function build()
     {
-        $this->confirmationMailTemplate = $this->subscriber->emailList->confirmationMail;
-
-        if ($this->confirmationMailTemplate) {
-            $this->template($this->confirmationMailTemplate->name);
-        }
-
         $mail = $this
             ->from(
                 $this->subscriber->emailList->default_from_email,
@@ -49,19 +37,6 @@ class ConfirmSubscriberMail extends Mailable implements ShouldQueue
             )
             ->determineSubject()
             ->determineContent();
-
-        $mail->subject($this->replacePlaceholders($mail->subject));
-
-        if ($this->confirmationMailTemplate) {
-            $html = $this->confirmationMailTemplate->render($this);
-            $html = str_ireplace('::confirmUrl::', $this->confirmationUrl, $html);
-            $content = $this->replacePlaceholders($html);
-            $plaintext = app(ConvertHtmlToTextAction::class)->execute($content);
-
-            $this
-                ->html($content)
-                ->text('mailcoach::mails.transactionalMails.template', ['content' => $plaintext]);
-        }
 
         if (! empty($this->subscriber->emailList->default_reply_to_email)) {
             $mail->replyTo(
@@ -75,23 +50,32 @@ class ConfirmSubscriberMail extends Mailable implements ShouldQueue
 
     protected function determineSubject(): self
     {
-        if ($this->confirmationMailTemplate) {
-            return $this;
-        }
+        $customSubject = $this->subscriber->emailList->confirmation_mail_subject;
 
-        $this->subject(__mc('Confirm your subscription to :emailListName', ['emailListName' => $this->subscriber->emailList->name]));
+        $subject = empty($customSubject)
+            ? __('Confirm your subscription to :emailListName', ['emailListName' => $this->subscriber->emailList->name])
+            : $this->replacePlaceholders($customSubject);
+
+        $this->subject($subject);
 
         return $this;
     }
 
     protected function determineContent(): self
     {
-        if ($this->confirmationMailTemplate) {
+        $customContent = $this->subscriber->emailList->confirmation_mail_content;
+
+        if (! empty($customContent)) {
+            $customContent = str_ireplace('::confirmUrl::', $this->confirmationUrl, $customContent);
+
+            $customContent = $this->replacePlaceholders($customContent);
+
+            $this->view('mailcoach::mails.customContent', ['content' => $customContent]);
+
             return $this;
         }
 
         $this->markdown('mailcoach::mails.confirmSubscription');
-        $this->text('mailcoach::mails.confirmSubscriptionText');
 
         return $this;
     }

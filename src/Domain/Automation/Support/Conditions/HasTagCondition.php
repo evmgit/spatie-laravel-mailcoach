@@ -16,12 +16,12 @@ class HasTagCondition implements Condition
 
     public static function getName(): string
     {
-        return (string) __mc('Has tag');
+        return (string) __('Has tag');
     }
 
     public static function getDescription(array $data): string
     {
-        return (string) __mc(':tag', ['tag' => $data['tag']]);
+        return (string) __(':tag', ['tag' => $data['tag']]);
     }
 
     public static function rules(): array

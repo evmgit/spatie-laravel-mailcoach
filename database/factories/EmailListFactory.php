@@ -3,16 +3,11 @@
 namespace Spatie\Mailcoach\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
+use Spatie\Mailcoach\Domain\Audience\Models\EmailList;
 
 class EmailListFactory extends Factory
 {
-    use UsesMailcoachModels;
-
-    public function modelName()
-    {
-        return static::getEmailListClass();
-    }
+    protected $model = EmailList::class;
 
     public function definition()
     {
@@ -23,9 +18,8 @@ class EmailListFactory extends Factory
             'default_from_name' => $this->faker->name,
             'default_reply_to_email' => $this->faker->email,
             'default_reply_to_name' => $this->faker->name,
-            'campaign_mailer' => config('mail.default'),
-            'automation_mailer' => config('mail.default'),
-            'transactional_mailer' => config('mail.default'),
+            'campaign_mailer' => config('mail.default') ?? 'array',
+            'transactional_mailer' => config('mail.default') ?? 'array',
         ];
     }
 }

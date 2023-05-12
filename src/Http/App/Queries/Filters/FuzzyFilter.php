@@ -5,13 +5,10 @@ namespace Spatie\Mailcoach\Http\App\Queries\Filters;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
 use Spatie\QueryBuilder\Filters\Filter;
 
 class FuzzyFilter implements Filter
 {
-    use UsesMailcoachModels;
-
     /** @var string[] */
     protected array $fields;
 
@@ -24,15 +21,10 @@ class FuzzyFilter implements Filter
     {
         $values = Arr::wrap($values);
 
-        $query->where(function (Builder $builder) use ($values, $query) {
+        $query->where(function (Builder $query) use ($values) {
             $this
-                ->addDirectFields($builder, $values)
-                ->addRelationShipFields($builder, $values);
-
-            $query->getQuery()->joins = array_merge(
-                $query->getQuery()->joins ?? [],
-                $builder->getQuery()->joins ?? []
-            );
+                ->addDirectFields($query, $values)
+                ->addRelationShipFields($query, $values);
         });
 
         return $query;
@@ -60,7 +52,6 @@ class FuzzyFilter implements Filter
 
                 foreach ($values as $value) {
                     $query->orWhereHas($relation, function (Builder $query) use ($field, $value) {
-                        $value = str_replace('+', ' ', $value);
                         $query->where($field, 'LIKE', "%{$value}%");
                     });
                 }

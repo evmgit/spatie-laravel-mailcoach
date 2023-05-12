@@ -10,7 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Spatie\Mailcoach\Domain\Audience\Actions\Subscribers\ImportSubscribersAction;
 use Spatie\Mailcoach\Domain\Audience\Models\SubscriberImport;
-use Spatie\Mailcoach\Mailcoach;
+use Spatie\Mailcoach\Domain\Shared\Support\Config;
 
 class ImportSubscribersJob implements ShouldQueue
 {
@@ -31,13 +31,14 @@ class ImportSubscribersJob implements ShouldQueue
 
         $this->queue = config('mailcoach.campaigns.perform_on_queue.import_subscribers_job');
 
-        $this->connection = $this->connection ?? Mailcoach::getQueueConnection();
+        $this->connection = $this->connection ?? Config::getQueueConnection();
     }
 
     public function handle()
     {
         /** @var \Spatie\Mailcoach\Domain\Audience\Actions\Subscribers\ImportSubscribersAction $importSubscribersAction */
-        $importSubscribersAction = Mailcoach::getAudienceActionClass('import_subscribers', ImportSubscribersAction::class);
+        $importSubscribersAction = Config::getAudienceActionClass('import_subscribers', ImportSubscribersAction::class);
+
         $importSubscribersAction->execute($this->subscriberImport, $this->user);
     }
 }

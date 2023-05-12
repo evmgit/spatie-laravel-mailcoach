@@ -2,58 +2,48 @@
 
 namespace Spatie\Mailcoach\Domain\Automation\Actions;
 
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Spatie\Mailcoach\Domain\Audience\Models\Subscriber;
 use Spatie\Mailcoach\Domain\Automation\Models\AutomationMail;
-use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
-use Spatie\Mailcoach\Mailcoach;
+use Spatie\Mailcoach\Domain\Shared\Mails\MailcoachMail;
+use Spatie\Mailcoach\Domain\Shared\Support\Config;
+use Swift_Message;
 
 class SendAutomationMailTestAction
 {
-    use UsesMailcoachModels;
-
-    public function __construct(
-        private SendMailAction $sendMailAction
-    ) {
-    }
-
     public function execute(AutomationMail $mail, string $email): void
     {
-        $subject = $mail->subject;
+        $html = $mail->htmlWithInlinedCss();
 
-        /** @var \Spatie\Mailcoach\Domain\Automation\Actions\PrepareSubjectAction $prepareSubjectAction */
-        $prepareSubjectAction = Mailcoach::getAutomationActionClass('prepare_subject', PrepareSubjectAction::class);
-        $prepareSubjectAction->execute($mail);
+        $convertHtmlToTextAction = Config::getAutomationActionClass('convert_html_to_text', ConvertHtmlToTextAction::class);
 
-        /** @var \Spatie\Mailcoach\Domain\Automation\Actions\PrepareEmailHtmlAction $prepareEmailHtmlAction */
-        $prepareEmailHtmlAction = Mailcoach::getAutomationActionClass('prepare_email_html', PrepareEmailHtmlAction::class);
-        $prepareEmailHtmlAction->execute($mail);
+        $text = $convertHtmlToTextAction->execute($html);
 
-        /** @var \Spatie\Mailcoach\Domain\Automation\Actions\PrepareWebviewHtmlAction $prepareWebviewHtmlAction */
-        $prepareWebviewHtmlAction = Mailcoach::getAutomationActionClass('prepare_webview_html', PrepareWebviewHtmlAction::class);
-        $prepareWebviewHtmlAction->execute($mail);
+        $subscriber = Subscriber::make();
 
-        $mail->subject = "[Test] {$subject}";
+        $mailable = resolve(MailcoachMail::class)
+            ->setFrom($mail->fromEmail($subscriber), $mail->fromName($subscriber))
+            ->setHtmlContent($html)
+            ->setTextContent($text)
+            ->setHtmlView('mailcoach::mails.automation.automationHtml')
+            ->setTextView('mailcoach::mails.automation.automationText')
+            ->subject("[Test] {$mail->subject}")
+            ->withSwiftMessage(function (Swift_Message $message) {
+                $message->getHeaders()->addTextHeader('X-MAILCOACH', 'true');
+                $message->getHeaders()->addTextHeader('X-Entity-Ref-ID', Str::uuid()->toString());
+            });
 
-        if (! $subscriber = self::getSubscriberClass()::where('email', $email)->first()) {
-            $subscriber = self::getSubscriberClass()::make([
-                'uuid' => Str::uuid()->toString(),
-                'email' => $email,
-            ]);
+        if ($mail->reply_to_email) {
+            $mailable->setReplyTo($mail->reply_to_email, $mail->reply_to_name);
         }
 
-        $send = self::getSendClass()::make([
-            'uuid' => Str::uuid()->toString(),
-            'subscriber_id' => $subscriber->id,
-            'automation_mail_id' => $mail->id,
-        ]);
-        $send->setRelation('subscriber', $subscriber);
-        $send->setRelation('automationMail', $mail);
+        $mailer = config('mailcoach.automation.mailer')
+            ?? config('mailcoach.mailer')
+            ?? config('mail.default');
 
-        try {
-            $this->sendMailAction->execute($send, isTest: true);
-        } finally {
-            $mail->update(['subject' => $subject]);
-            $send->delete();
-        }
+        Mail::mailer($mailer)
+            ->to($email)
+            ->send($mailable);
     }
 }

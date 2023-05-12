@@ -22,13 +22,13 @@ use Spatie\Mailcoach\Domain\Campaign\Events\CampaignLinkClickedEvent;
 use Spatie\Mailcoach\Domain\Campaign\Events\CampaignOpenedEvent;
 use Spatie\Mailcoach\Domain\Campaign\Models\CampaignClick;
 use Spatie\Mailcoach\Domain\Campaign\Models\CampaignOpen;
+use Spatie\Mailcoach\Domain\Campaign\Models\Concerns\HasUuid;
 use Spatie\Mailcoach\Domain\Shared\Actions\StripUtmTagsFromUrlAction;
 use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
 use Spatie\Mailcoach\Domain\TransactionalMail\Events\TransactionalMailLinkClickedEvent;
 use Spatie\Mailcoach\Domain\TransactionalMail\Events\TransactionalMailOpenedEvent;
 use Spatie\Mailcoach\Domain\TransactionalMail\Models\TransactionalMailClick;
 use Spatie\Mailcoach\Domain\TransactionalMail\Models\TransactionalMailOpen;
-use Spatie\Mailcoach\Mailcoach;
 
 class Send extends Model
 {
@@ -41,7 +41,6 @@ class Send extends Model
     public $guarded = [];
 
     public $dates = [
-        'sending_job_dispatched_at',
         'sent_at',
         'failed_at',
     ];
@@ -58,34 +57,7 @@ class Send extends Model
 
     public function concernsTransactionalMail(): bool
     {
-        return ! is_null($this->transactional_mail_log_item_id);
-    }
-
-    public function getSendable(): ?Sendable
-    {
-        if ($this->concernsCampaign()) {
-            return $this->campaign;
-        }
-
-        if ($this->concernsAutomationMail()) {
-            return $this->automationMail;
-        }
-
-        return null;
-    }
-
-    public function getMailerKey(): ?string
-    {
-        if ($this->concernsAutomationMail()) {
-            return $this->subscriber->emailList->automation_mailer
-                ?? Mailcoach::defaultAutomationMailer();
-        }
-
-        if ($this->concernsCampaign()) {
-            return $this->campaign->getMailerKey();
-        }
-
-        return Mailcoach::defaultTransactionalMailer();
+        return ! is_null($this->transactional_mail_id);
     }
 
     public static function findByTransportMessageId(string $transportMessageId): ?Model
@@ -95,57 +67,57 @@ class Send extends Model
 
     public function subscriber(): BelongsTo
     {
-        return $this->belongsTo(self::getSubscriberClass(), 'subscriber_id');
+        return $this->belongsTo(config('mailcoach.models.subscriber'), 'subscriber_id');
     }
 
     public function campaign(): BelongsTo
     {
-        return $this->belongsTo(self::getCampaignClass(), 'campaign_id');
+        return $this->belongsTo(config('mailcoach.models.campaign'), 'campaign_id');
     }
 
     public function automationMail(): BelongsTo
     {
-        return $this->belongsTo(self::getAutomationMailClass(), 'automation_mail_id');
+        return $this->belongsTo(static::getAutomationMailClass(), 'automation_mail_id');
     }
 
-    public function transactionalMailLogItem(): BelongsTo
+    public function transactionalMail(): BelongsTo
     {
-        return $this->belongsTo(self::getTransactionalMailLogItemClass(), 'transactional_mail_log_item_id');
+        return $this->belongsTo(static::getTransactionalMailClass(), 'transactional_mail_id');
     }
 
     public function opens(): HasMany
     {
-        return $this->hasMany(self::getCampaignOpenClass(), 'send_id');
+        return $this->hasMany(static::getCampaignOpenClass(), 'send_id');
     }
 
     public function clicks(): HasMany
     {
-        return $this->hasMany(self::getCampaignClickClass(), 'send_id');
+        return $this->hasMany(static::getCampaignClickClass(), 'send_id');
     }
 
     public function automationMailOpens(): HasMany
     {
-        return $this->hasMany(self::getAutomationMailOpenClass(), 'send_id');
+        return $this->hasMany(static::getAutomationMailOpenClass(), 'send_id');
     }
 
     public function automationMailClicks(): HasMany
     {
-        return $this->hasMany(self::getAutomationMailClickClass(), 'send_id');
+        return $this->hasMany(static::getAutomationMailClickClass(), 'send_id');
     }
 
     public function transactionalMailOpens(): HasMany
     {
-        return $this->hasMany(self::getTransactionalMailOpenClass(), 'send_id');
+        return $this->hasMany(TransactionalMailOpen::class, 'send_id');
     }
 
     public function transactionalMailClicks(): HasMany
     {
-        return $this->hasMany(self::getTransactionalMailClickClass(), 'send_id');
+        return $this->hasMany(TransactionalMailClick::class, 'send_id');
     }
 
     public function feedback(): HasMany
     {
-        return $this->hasMany(self::getSendFeedbackItemClass(), 'send_id');
+        return $this->hasMany(SendFeedbackItem::class, 'send_id');
     }
 
     public function latestFeedback(): ?SendFeedbackItem
@@ -156,15 +128,15 @@ class Send extends Model
     public function bounces(): HasMany
     {
         return $this
-            ->hasMany(self::getSendFeedbackItemClass())
-            ->where('type', SendFeedbackType::Bounce);
+            ->hasMany(SendFeedbackItem::class)
+            ->where('type', SendFeedbackType::BOUNCE);
     }
 
     public function complaints(): HasMany
     {
         return $this
-            ->hasMany(self::getSendFeedbackItemClass())
-            ->where('type', SendFeedbackType::Complaint);
+            ->hasMany(SendFeedbackItem::class)
+            ->where('type', SendFeedbackType::COMPLAINT);
     }
 
     public function markAsSent()
@@ -181,20 +153,6 @@ class Send extends Model
         return ! is_null($this->sent_at);
     }
 
-    public function markAsSendingJobDispatched(): self
-    {
-        $this->update([
-            'sending_job_dispatched_at' => now(),
-        ]);
-
-        return $this;
-    }
-
-    public function mailSendingJobWasDispatched(): bool
-    {
-        return ! is_null($this->sending_job_dispatched_at);
-    }
-
     public function storeTransportMessageId(string $transportMessageId)
     {
         $this->update(['transport_message_id' => $transportMessageId]);
@@ -202,16 +160,8 @@ class Send extends Model
         return $this;
     }
 
-    public function registerOpen(?DateTimeInterface $openedAt = null): CampaignOpen|AutomationMailOpen|TransactionalMailOpen|null
+    public function registerOpen(?DateTimeInterface $openedAt = null): CampaignOpen | AutomationMailOpen | TransactionalMailOpen | null
     {
-        if ($this->concernsTransactionalMail()) {
-            return $this->registerTransactionalMailOpen($openedAt);
-        }
-
-        if (! $this->subscriber) {
-            return null;
-        }
-
         if ($this->concernsCampaign()) {
             return $this->registerCampaignOpen($openedAt);
         }
@@ -220,16 +170,20 @@ class Send extends Model
             return $this->registerAutomationMailOpen($openedAt);
         }
 
+        if ($this->concernsTransactionalMail()) {
+            return $this->registerTransactionalMailOpen($openedAt);
+        }
+
         return null;
     }
 
     public function registerCampaignOpen(?DateTimeInterface $openedAt = null): ?CampaignOpen
     {
-        if ($this->wasOpenedInTheLastSeconds($this->opens(), 5)) {
+        if (! $this->campaign->track_opens) {
             return null;
         }
 
-        if (! $this->campaign) {
+        if ($this->wasOpenedInTheLastSeconds($this->opens(), 5)) {
             return null;
         }
 
@@ -249,11 +203,11 @@ class Send extends Model
 
     public function registerAutomationMailOpen(?DateTimeInterface $openedAt = null): ?AutomationMailOpen
     {
-        if ($this->wasOpenedInTheLastSeconds($this->automationMailOpens(), 5)) {
+        if (! $this->automationMail->track_opens) {
             return null;
         }
 
-        if (! $this->automationMail) {
+        if ($this->wasOpenedInTheLastSeconds($this->automationMailOpens(), 5)) {
             return null;
         }
 
@@ -271,11 +225,15 @@ class Send extends Model
 
     public function registerTransactionalMailOpen(?DateTimeInterface $openedAt = null): ?TransactionalMailOpen
     {
+        if (! $this->transactionalMail->track_opens) {
+            return null;
+        }
+
         if ($this->wasOpenedInTheLastSeconds($this->transactionalMailOpens(), 5)) {
             return null;
         }
 
-        $transactionalMailOpen = self::getTransactionalMailOpenClass()::create([
+        $transactionalMailOpen = TransactionalMailOpen::create([
             'send_id' => $this->id,
             'created_at' => $openedAt ?? now(),
         ]);
@@ -296,24 +254,20 @@ class Send extends Model
         return $latestOpen->created_at->diffInSeconds() < $seconds;
     }
 
-    public function registerClick(string $url, ?DateTimeInterface $clickedAt = null): CampaignClick|AutomationMailClick|TransactionalMailClick|null
+    public function registerClick(string $url, ?DateTimeInterface $clickedAt = null): CampaignClick | AutomationMailClick | TransactionalMailClick | null
     {
         $url = resolve(StripUtmTagsFromUrlAction::class)->execute($url);
 
-        if ($this->concernsTransactionalMail()) {
-            return $this->registerTransactionalMailClick($url, $clickedAt);
-        }
-
-        if (! $this->subscriber) {
-            return null;
-        }
-
-        if ($this->concernsCampaign() && $this->campaign) {
+        if ($this->concernsCampaign()) {
             return $this->registerCampaignClick($url, $clickedAt);
         }
 
-        if ($this->concernsAutomationMail() && $this->automationMail) {
+        if ($this->concernsAutomationMail()) {
             return $this->registerAutomationMailClick($url, $clickedAt);
+        }
+
+        if ($this->concernsTransactionalMail()) {
+            return $this->registerTransactionalMailClick($url, $clickedAt);
         }
 
         return null;
@@ -321,14 +275,18 @@ class Send extends Model
 
     protected function registerCampaignClick(string $url, ?DateTimeInterface $clickedAt = null): ?CampaignClick
     {
+        if (! $this->campaign->track_clicks) {
+            return null;
+        }
+
         if (Str::startsWith($url, route('mailcoach.unsubscribe', ''))) {
             return null;
         }
 
-        $campaignLink = self::getCampaignLinkClass()::firstOrCreate([
+        $campaignLink = static::getCampaignLinkClass()::firstOrCreate([
             'campaign_id' => $this->campaign->id,
             'url' => $url,
-        ], ['uuid' => Str::uuid()]);
+        ]);
 
         $campaignClick = $campaignLink->registerClick($this, $clickedAt);
 
@@ -341,15 +299,19 @@ class Send extends Model
 
     protected function registerAutomationMailClick(string $url, ?DateTimeInterface $clickedAt = null): ?AutomationMailClick
     {
+        if (! $this->automationMail->track_clicks) {
+            return null;
+        }
+
         if (Str::startsWith($url, route('mailcoach.unsubscribe', ''))) {
             return null;
         }
 
         /** @var AutomationMailLink $automationMailLink */
-        $automationMailLink = self::getAutomationMailLinkClass()::firstOrCreate([
+        $automationMailLink = static::getAutomationMailLinkClass()::firstOrCreate([
             'automation_mail_id' => $this->automationMail->id,
             'url' => $url,
-        ], ['uuid' => Str::uuid()]);
+        ]);
 
         $automationMailLink = $automationMailLink->registerClick($this, $clickedAt);
 
@@ -362,10 +324,13 @@ class Send extends Model
 
     protected function registerTransactionalMailClick(string $url, ?DateTimeInterface $clickedAt = null): ?TransactionalMailClick
     {
-        $transactionalMailClick = self::getTransactionalMailClickClass()::create([
+        if (! $this->transactionalMail->track_clicks) {
+            return null;
+        }
+
+        $transactionalMailClick = TransactionalMailClick::create([
             'send_id' => $this->id,
             'url' => $url,
-            'created_at' => $clickedAt ?? now(),
         ]);
 
         event(new TransactionalMailLinkClickedEvent($transactionalMailClick));
@@ -376,8 +341,7 @@ class Send extends Model
     public function registerBounce(?DateTimeInterface $bouncedAt = null)
     {
         $this->feedback()->create([
-            'type' => SendFeedbackType::Bounce,
-            'uuid' => Str::uuid(),
+            'type' => SendFeedbackType::BOUNCE,
             'created_at' => $bouncedAt ?? now(),
         ]);
 
@@ -391,8 +355,7 @@ class Send extends Model
     public function registerComplaint(?DateTimeInterface $complainedAt = null)
     {
         $this->feedback()->create([
-            'type' => SendFeedbackType::Complaint,
-            'uuid' => Str::uuid(),
+            'type' => SendFeedbackType::COMPLAINT,
             'created_at' => $complainedAt ?? now(),
         ]);
 
@@ -401,11 +364,6 @@ class Send extends Model
         event(new ComplaintRegisteredEvent($this));
 
         return $this;
-    }
-
-    public function scopeUndispatched(Builder $query): void
-    {
-        $query->whereNull('sending_job_dispatched_at');
     }
 
     public function scopePending(Builder $query): void
@@ -420,11 +378,6 @@ class Send extends Model
             ->whereNull('failed_at');
     }
 
-    public function scopeInvalidated(Builder $query): void
-    {
-        $query->whereNotNull('invalidated_at');
-    }
-
     public function scopeFailed(Builder $query): void
     {
         $query->whereNotNull('failed_at');
@@ -433,33 +386,19 @@ class Send extends Model
     public function scopeBounced(Builder $query): void
     {
         $query->whereHas('feedback', function (Builder $query) {
-            $query->where('type', SendFeedbackType::Bounce);
+            $query->where('type', SendFeedbackType::BOUNCE);
         });
     }
 
     public function scopeComplained(Builder $query): void
     {
         $query->whereHas('feedback', function (Builder $query) {
-            $query->where('type', SendFeedbackType::Complaint);
+            $query->where('type', SendFeedbackType::COMPLAINT);
         });
-    }
-
-    public function invalidate(): self
-    {
-        $this->update([
-            'sent_at' => now(),
-            'invalidated_at' => now(),
-        ]);
-
-        return $this;
     }
 
     public function markAsFailed(string $failureReason): self
     {
-        if (! $this->exists) {
-            return $this;
-        }
-
         $this->update([
             'sent_at' => now(),
             'failed_at' => now(),
@@ -475,8 +414,14 @@ class Send extends Model
             'sent_at' => null,
             'failed_at' => null,
             'failure_reason' => null,
-            'sending_job_dispatched_at' => now(),
         ]);
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $field ??= $this->getRouteKeyName();
+
+        return $this->getSendClass()::where($field, $value)->firstOrFail();
     }
 
     protected static function newFactory(): SendFactory

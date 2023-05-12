@@ -1,21 +1,37 @@
 .filters {
-    @apply flex;
-    @apply flex-wrap;
-    @apply gap-x-6;
-    @apply items-center;
+    display: none;
+}
+
+@screen md {
+    .filters {
+        display: flex;
+        align-items: center;
+        @apply rounded-full;
+    }
 }
 
 .filters li a {
     display: flex;
-    @apply h-10;
-    @apply pl-1;
+    @apply h-8;
     @apply items-center;
+    @apply px-3;
+    @apply bg-gray-100;
+    @apply border-r;
+    @apply border-gray-200;
     @apply leading-none;
     @apply text-sm;
-    @apply hover:text-blue-800;
-    @apply font-medium;
+    @apply text-blue-800;
+}
+
+.filters li:first-child a {
+    @apply rounded-l-full;
+    @apply pl-4;
+}
+
+.filters li:last-child a {
+    @apply border-r-0;
 }
 
 .filters li .filter-active {
-    @apply text-blue-700;
+    @apply bg-blue-200;
 }

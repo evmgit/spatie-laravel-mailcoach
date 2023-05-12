@@ -2,9 +2,9 @@
 
 namespace Spatie\Mailcoach\Domain\Audience\Enums;
 
-enum SubscriptionStatus: string
+class SubscriptionStatus
 {
-    case Unconfirmed = 'unconfirmed';
-    case Subscribed = 'subscribed';
-    case Unsubscribed = 'unsubscribed';
+    public const UNCONFIRMED = 'unconfirmed';
+    public const SUBSCRIBED = 'subscribed';
+    public const UNSUBSCRIBED = 'unsubscribed';
 }

@@ -18,12 +18,12 @@ class DateTrigger extends AutomationTrigger implements TriggeredBySchedule
 
     public static function getName(): string
     {
-        return (string) __mc('On a date');
+        return (string) __('On a date');
     }
 
     public static function getComponent(): ?string
     {
-        return 'mailcoach::date-trigger';
+        return 'date-trigger';
     }
 
     public static function make(array $data): self

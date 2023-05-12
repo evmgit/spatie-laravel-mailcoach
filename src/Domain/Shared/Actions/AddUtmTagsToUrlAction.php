@@ -2,8 +2,6 @@
 
 namespace Spatie\Mailcoach\Domain\Shared\Actions;
 
-use Illuminate\Support\Str;
-
 class AddUtmTagsToUrlAction
 {
     public function execute(string $url, string $campaignName): string
@@ -15,7 +13,7 @@ class AddUtmTagsToUrlAction
         $tags = [
             'utm_source' => 'newsletter',
             'utm_medium' => 'email',
-            'utm_campaign' => Str::slug($campaignName),
+            'utm_campaign' => $campaignName,
         ];
 
         $parsedUrl = parse_url($url);
@@ -37,8 +35,6 @@ class AddUtmTagsToUrlAction
         $query = http_build_query($parsedQuery);
         $path = $parsedUrl['path'] ?? '';
 
-        $fragment = isset($parsedUrl['fragment']) ? "#{$parsedUrl['fragment']}" : '';
-
-        return "{$parsedUrl['scheme']}://{$parsedUrl['host']}{$path}{$fragment}?{$query}";
+        return "{$parsedUrl['scheme']}://{$parsedUrl['host']}{$path}?{$query}";
     }
 }

@@ -2,8 +2,25 @@
 
 namespace Spatie\Mailcoach\Domain\Campaign\Actions;
 
-use Spatie\Mailcoach\Domain\Shared\Actions\ConvertHtmlToTextAction as BaseConvertHtmlToTextAction;
+use Exception;
+use League\HTMLToMarkdown\HtmlConverter;
 
-class ConvertHtmlToTextAction extends BaseConvertHtmlToTextAction
+class ConvertHtmlToTextAction
 {
+    public function execute(string $html): string
+    {
+        $converter = new HtmlConverter([
+            'strip_tags' => true,
+            'suppress_errors' => false,
+            'remove_nodes' => 'head script style',
+        ]);
+
+        try {
+            $text = $converter->convert($html);
+        } catch (Exception) {
+            $text = '';
+        }
+
+        return $text;
+    }
 }

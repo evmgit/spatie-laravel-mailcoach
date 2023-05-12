@@ -1,38 +1,25 @@
+import Turbolinks from 'turbolinks';
 import { listen, $ } from '../util';
+import { showModal } from './modal';
 
 listen('input', '[data-dirty-check]', ({ target }) => {
     target.dirty = true;
 });
 
-if (Livewire) {
-    Livewire.on('notify', function(params) {
-        const [message, level] = params;
+listen('click', '[data-dirty-warn]', () => {
+    if (!$('[data-dirty-check]') || !$('[data-dirty-check]').dirty) {
+        return;
+    }
 
-        if (level === 'success' && $('[data-dirty-check]')) {
-            $('[data-dirty-check]').dirty = false;
-        }
-    });
-}
-
-document.addEventListener(
-    'click',
-    event => {
-        if (event.target.dataset.dirtyWarn === undefined) {
-            return;
-        }
-
-        if (!$('[data-dirty-check]') || !$('[data-dirty-check]').dirty) {
-            return;
-        }
-
-        event.stopImmediatePropagation();
+    function handleBeforeVisit(event) {
         event.preventDefault();
 
-        Alpine.store('modals').open('dirty-warning');
-        Alpine.store('modals').onConfirm = () => {
-            Alpine.store('modals').close('dirty-warning');
-            window.location.href = event.target.href;
-        };
-    },
-    true
-);
+        showModal('dirty-warning', {
+            onConfirm() {
+                Turbolinks.visit(event.data.url);
+            },
+        });
+    }
+
+    document.addEventListener('turbolinks:before-visit', handleBeforeVisit, { once: true });
+});

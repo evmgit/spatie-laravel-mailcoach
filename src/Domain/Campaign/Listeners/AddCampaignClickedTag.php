@@ -13,17 +13,13 @@ class AddCampaignClickedTag
         $campaign = $event->campaignClick->link->campaign;
         $subscriber = $event->campaignClick->subscriber;
 
-        if ($campaign->add_subscriber_tags) {
-            $subscriber->addTag("campaign-{$campaign->uuid}-clicked", TagType::Mailcoach);
-        }
+        $hash = LinkHasher::hash(
+            $event->campaignClick->send->campaign,
+            $event->campaignClick->link->url,
+            'clicked'
+        );
 
-        if ($campaign->add_subscriber_link_tags) {
-            $hash = LinkHasher::hash(
-                sendable: $event->campaignClick->send->campaign,
-                url: $event->campaignClick->link->url,
-            );
-
-            $subscriber->addTag($hash, TagType::Mailcoach);
-        }
+        $subscriber->addTag("campaign-{$campaign->id}-clicked", TagType::MAILCOACH);
+        $subscriber->addTag($hash, TagType::MAILCOACH);
     }
 }

@@ -8,13 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Mailcoach\Database\Factories\AutomationMailLinkFactory;
-use Spatie\Mailcoach\Domain\Shared\Models\HasUuid;
 use Spatie\Mailcoach\Domain\Shared\Models\Send;
 use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
 
 class AutomationMailLink extends Model
 {
-    use HasUuid;
     use HasFactory;
     use UsesMailcoachModels;
 
@@ -34,7 +32,7 @@ class AutomationMailLink extends Model
 
     public function clicks(): HasMany
     {
-        return $this->hasMany(self::getAutomationMailClickClass());
+        return $this->hasMany(static::getAutomationMailClickClass());
     }
 
     public function registerClick(Send $send, ?DateTimeInterface $clickedAt): AutomationMailClick

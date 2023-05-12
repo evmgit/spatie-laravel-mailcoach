@@ -13,17 +13,13 @@ class AddAutomationMailClickedTag
         $mail = $event->automationMailClick->link->automationMail;
         $subscriber = $event->automationMailClick->send->subscriber;
 
-        if ($mail->add_subscriber_tags) {
-            $subscriber->addTag("automation-mail-{$mail->uuid}-clicked", TagType::Mailcoach);
-        }
+        $hash = LinkHasher::hash(
+            $event->automationMailClick->link->automationMail,
+            $event->automationMailClick->link->url,
+            'clicked'
+        );
 
-        if ($mail->add_subscriber_link_tags) {
-            $hash = LinkHasher::hash(
-                sendable: $event->automationMailClick->link->automationMail,
-                url: $event->automationMailClick->link->url,
-            );
-
-            $subscriber->addTag($hash, TagType::Mailcoach);
-        }
+        $subscriber->addTag("automation-mail-{$mail->id}-clicked", TagType::MAILCOACH);
+        $subscriber->addTag($hash, TagType::MAILCOACH);
     }
 }

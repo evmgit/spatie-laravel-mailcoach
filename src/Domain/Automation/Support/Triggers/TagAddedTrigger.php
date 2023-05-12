@@ -17,12 +17,12 @@ class TagAddedTrigger extends AutomationTrigger implements TriggeredByEvents
 
     public static function getName(): string
     {
-        return (string) __mc('When a tag gets added to a subscriber');
+        return (string) __('When a tag gets added to a subscriber');
     }
 
     public static function getComponent(): ?string
     {
-        return 'mailcoach::tag-added-trigger';
+        return 'tag-added-trigger';
     }
 
     public static function rules(): array

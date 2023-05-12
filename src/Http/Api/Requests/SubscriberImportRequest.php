@@ -10,7 +10,7 @@ class SubscriberImportRequest extends FormRequest
     {
         return [
             'subscribers_csv' => 'required',
-            'email_list_uuid' => 'required',
+            'email_list_id' => 'required',
             'subscribe_unsubscribed' => 'boolean',
             'unsubscribe_others' => 'boolean',
             'replace_tags' => 'boolean',

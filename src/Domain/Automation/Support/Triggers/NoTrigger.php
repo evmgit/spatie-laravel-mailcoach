@@ -6,11 +6,11 @@ class NoTrigger extends AutomationTrigger
 {
     public static function getName(): string
     {
-        return (string) __mc('No trigger');
+        return (string) __('No trigger');
     }
 
     public static function getComponent(): ?string
     {
-        return 'mailcoach::no-trigger';
+        return 'no-trigger';
     }
 }

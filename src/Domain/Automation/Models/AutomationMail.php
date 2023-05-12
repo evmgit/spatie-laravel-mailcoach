@@ -13,15 +13,12 @@ use Spatie\Mailcoach\Domain\Campaign\Enums\SendFeedbackType;
 use Spatie\Mailcoach\Domain\Shared\Jobs\CalculateStatisticsJob;
 use Spatie\Mailcoach\Domain\Shared\Mails\MailcoachMail;
 use Spatie\Mailcoach\Domain\Shared\Models\Sendable;
+use Spatie\Mailcoach\Domain\Shared\Models\SendFeedbackItem;
+use Spatie\Mailcoach\Domain\Shared\Support\CalculateStatisticsLock;
 
 class AutomationMail extends Sendable
 {
     public $table = 'mailcoach_automation_mails';
-
-    protected $casts = [
-        'add_subscriber_tags' => 'boolean',
-        'add_subscriber_link_tags' => 'boolean',
-    ];
 
     public function links(): HasMany
     {
@@ -32,8 +29,8 @@ class AutomationMail extends Sendable
     {
         return $this
             ->hasManyThrough(
-                self::getAutomationMailOpenClass(),
-                self::getSendClass(),
+                static::getAutomationMailOpenClass(),
+                $this->getSendClass(),
                 'automation_mail_id'
             )
             ->orderBy('created_at');
@@ -43,8 +40,8 @@ class AutomationMail extends Sendable
     {
         return $this
             ->hasManyThrough(
-                self::getAutomationMailClickClass(),
-                self::getSendClass(),
+                static::getAutomationMailClickClass(),
+                $this->getSendClass(),
                 'automation_mail_id'
             )
             ->orderBy('created_at');
@@ -52,7 +49,7 @@ class AutomationMail extends Sendable
 
     public function sends(): HasMany
     {
-        return $this->hasMany(self::getSendClass(), 'automation_mail_id');
+        return $this->hasMany($this->getSendClass(), 'automation_mail_id');
     }
 
     public function unsubscribes(): HasMany
@@ -63,15 +60,15 @@ class AutomationMail extends Sendable
     public function bounces(): HasManyThrough
     {
         return $this
-            ->hasManyThrough(self::getSendFeedbackItemClass(), self::getSendClass(), 'automation_mail_id')
-            ->where('type', SendFeedbackType::Bounce);
+            ->hasManyThrough(SendFeedbackItem::class, $this->getSendClass(), 'automation_mail_id')
+            ->where('type', SendFeedbackType::BOUNCE);
     }
 
     public function complaints(): HasManyThrough
     {
         return $this
-            ->hasManyThrough(self::getSendFeedbackItemClass(), self::getSendClass(), 'automation_mail_id')
-            ->where('type', SendFeedbackType::Complaint);
+            ->hasManyThrough(SendFeedbackItem::class, $this->getSendClass(), 'automation_mail_id')
+            ->where('type', SendFeedbackType::COMPLAINT);
     }
 
     public function isReady(): bool
@@ -126,7 +123,7 @@ class AutomationMail extends Sendable
         }
     }
 
-    public function send(ActionSubscriber $actionSubscriber): self
+    public function send(Subscriber $subscriber): self
     {
         $this->ensureSendable();
 
@@ -136,7 +133,7 @@ class AutomationMail extends Sendable
             $this->content($this->contentFromMailable());
         }
 
-        dispatch(new SendAutomationMailToSubscriberJob($this, $actionSubscriber));
+        dispatch(new SendAutomationMailToSubscriberJob($this, $subscriber));
 
         return $this;
     }
@@ -150,14 +147,14 @@ class AutomationMail extends Sendable
             ->exists();
     }
 
-    public function sendTestMail(string|array $emails): void
+    public function sendTestMail(string | array $emails): void
     {
         if ($this->hasCustomMailable()) {
             $this->pullSubjectFromMailable();
         }
 
         collect($emails)->each(function (string $email) {
-            dispatch_sync(new SendAutomationMailTestJob($this, $email));
+            dispatch(new SendAutomationMailTestJob($this, $email));
         });
     }
 
@@ -174,9 +171,23 @@ class AutomationMail extends Sendable
         return resolve($mailableClass, $mailableArguments);
     }
 
-    public function dispatchCalculateStatistics(): void
+    public function dispatchCalculateStatistics()
     {
-        dispatch(new CalculateStatisticsJob($this));
+        $lock = new CalculateStatisticsLock($this);
+
+        if (! $lock->get()) {
+            return;
+        }
+
+        $latestEvent = max(
+            $this->sends()->latest()->first()?->created_at,
+            $this->opens()->latest()->first()?->created_at,
+            $this->clicks()->latest()->first()?->created_at,
+        );
+
+        if (! $this->statistics_calculated_at || ($latestEvent && $latestEvent >= $this->statistics_calculated_at)) {
+            dispatch(new CalculateStatisticsJob($this));
+        }
     }
 
     public function hasCustomMailable(): bool
@@ -186,6 +197,23 @@ class AutomationMail extends Sendable
         }
 
         return ! is_null($this->mailable_class);
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $field ??= $this->getRouteKeyName();
+
+        return $this->getAutomationMailClass()::where($field, $value)->firstOrFail();
+    }
+
+    public function fromEmail(Subscriber $subscriber): string
+    {
+        return $this->from_email ?? $subscriber->emailList->default_from_email ?? config('mail.from.address');
+    }
+
+    public function fromName(Subscriber $subscriber): ?string
+    {
+        return $this->from_name ?? $subscriber->emailList->default_from_name ?? config('mail.from.name');
     }
 
     public function replyToEmail(Subscriber $subscriber): ?string

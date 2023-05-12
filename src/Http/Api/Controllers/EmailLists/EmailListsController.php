@@ -19,14 +19,14 @@ class EmailListsController
 
     public function index(EmailListQuery $emailLists)
     {
-        $this->authorize('viewAny', static::getEmailListClass());
+        $this->authorize("viewAny", static::getEmailListClass());
 
         return EmailListResource::collection($emailLists->paginate());
     }
 
     public function show(EmailList $emailList)
     {
-        $this->authorize('view', $emailList);
+        $this->authorize("view", $emailList);
 
         return new EmailListResource($emailList);
     }
@@ -35,7 +35,7 @@ class EmailListsController
     {
         $emailListClass = static::getEmailListClass();
 
-        $this->authorize('create', $emailListClass);
+        $this->authorize("create", $emailListClass);
 
         $emailList = new $emailListClass;
 
@@ -46,7 +46,7 @@ class EmailListsController
 
     public function update(UpdateEmailListSettingsRequest $request, EmailList $emailList, UpdateEmailListAction $updateEmailListAction)
     {
-        $this->authorize('update', $emailList);
+        $this->authorize("update", $emailList);
 
         $emailList = $updateEmailListAction->execute($emailList, $request);
 
@@ -55,7 +55,7 @@ class EmailListsController
 
     public function destroy(EmailList $emailList)
     {
-        $this->authorize('delete', $emailList);
+        $this->authorize("delete", $emailList);
 
         $emailList->delete();
 

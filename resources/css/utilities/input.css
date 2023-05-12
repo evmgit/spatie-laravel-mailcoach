@@ -7,15 +7,14 @@
     @apply w-full;
     @apply max-w-full;
     @apply min-h-10;
-    @apply px-2.5;
-    @apply rounded-sm;
-    @apply bg-indigo-300/5;
-    @apply shadow-md;
-    @apply shadow-blue-300/10;
+    @apply px-2;
+    @apply rounded;
+    @apply text-gray-800;
+    @apply bg-blue-100;
+    @apply bg-opacity-50;
     @apply border;
-    @apply border-indigo-700/20;
-    @apply hover:border-indigo-700/30;
-    @apply placeholder:text-indigo-900/50;
+    @apply border-blue-200;
+    @apply border-opacity-50;
 }
 
 .input-sm {
@@ -40,22 +39,21 @@
     @apply font-mono;
 }
 
-input[readonly],
 input:disabled {
-    @apply opacity-90;
+    @apply opacity-50;
     @apply cursor-not-allowed;
 }
 
+input:read-only {
+}
+
 .input-focus,
-.input:focus,
-.input:focus-within {
-    @apply bg-white;
-    @apply border-blue-500;
+.input:focus {
+    @apply border-blue-400;
     @apply outline-none;
-    @apply shadow-md;
-    @apply shadow-blue-400/20;
-    @apply placeholder:text-indigo-900/30;
-    @apply placeholder:opacity-100;
+    @apply bg-white;
+    @apply shadow-focus;
+    @apply placeholder-transparent;
 }
 
 @screen lg {

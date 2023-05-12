@@ -2,7 +2,7 @@
 
 namespace Spatie\Mailcoach\Domain\Automation\Support\Actions;
 
-use Spatie\Mailcoach\Domain\Automation\Models\ActionSubscriber;
+use Spatie\Mailcoach\Domain\Audience\Models\Subscriber;
 use Spatie\Mailcoach\Domain\Automation\Support\Actions\Enums\ActionCategoryEnum;
 
 class AddTagsAction extends AutomationAction
@@ -11,12 +11,12 @@ class AddTagsAction extends AutomationAction
 
     public static function getCategory(): ActionCategoryEnum
     {
-        return ActionCategoryEnum::Tags;
+        return ActionCategoryEnum::tags();
     }
 
     public static function make(array $data): self
     {
-        return new self(explode(',', $data['tags'] ?? []));
+        return new self(explode(',', $data['tags']));
     }
 
     public function __construct(array $tags)
@@ -28,12 +28,12 @@ class AddTagsAction extends AutomationAction
 
     public static function getName(): string
     {
-        return (string) __mc('Add tags');
+        return (string) __('Add tags');
     }
 
     public static function getComponent(): ?string
     {
-        return 'mailcoach::add-tags-action';
+        return 'add-tags-action';
     }
 
     public function toArray(): array
@@ -43,8 +43,8 @@ class AddTagsAction extends AutomationAction
         ];
     }
 
-    public function run(ActionSubscriber $actionSubscriber): void
+    public function run(Subscriber $subscriber): void
     {
-        $actionSubscriber->subscriber->addTags($this->tags);
+        $subscriber->addTags($this->tags);
     }
 }

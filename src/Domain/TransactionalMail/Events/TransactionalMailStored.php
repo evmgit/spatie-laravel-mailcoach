@@ -3,12 +3,12 @@
 namespace Spatie\Mailcoach\Domain\TransactionalMail\Events;
 
 use Illuminate\Mail\Events\MessageSending;
-use Spatie\Mailcoach\Domain\TransactionalMail\Models\TransactionalMailLogItem;
+use Spatie\Mailcoach\Domain\TransactionalMail\Models\TransactionalMail;
 
 class TransactionalMailStored
 {
     public function __construct(
-        public TransactionalMailLogItem $transactionalMail,
+        public TransactionalMail $transactionalMail,
         public MessageSending $sending
     ) {
     }

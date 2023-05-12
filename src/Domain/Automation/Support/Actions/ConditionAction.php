@@ -5,7 +5,6 @@ namespace Spatie\Mailcoach\Domain\Automation\Support\Actions;
 use Carbon\CarbonInterval;
 use Spatie\Mailcoach\Domain\Audience\Models\Subscriber;
 use Spatie\Mailcoach\Domain\Automation\Models\Action;
-use Spatie\Mailcoach\Domain\Automation\Models\ActionSubscriber;
 use Spatie\Mailcoach\Domain\Automation\Models\Automation;
 use Spatie\Mailcoach\Domain\Automation\Support\Actions\Enums\ActionCategoryEnum;
 
@@ -26,17 +25,17 @@ class ConditionAction extends AutomationAction
 
     public static function getCategory(): ActionCategoryEnum
     {
-        return ActionCategoryEnum::Check;
+        return ActionCategoryEnum::check();
     }
 
     public static function getName(): string
     {
-        return (string) __mc('If/Else');
+        return (string) __('If/Else');
     }
 
     public static function getComponent(): ?string
     {
-        return 'mailcoach::condition-action';
+        return 'condition-action';
     }
 
     public function duplicate(): static
@@ -160,7 +159,7 @@ class ConditionAction extends AutomationAction
         ];
     }
 
-    private function actionToArray(array|AutomationAction $action): array
+    private function actionToArray(array | AutomationAction $action): array
     {
         $actionClass = static::getAutomationActionClass();
 
@@ -190,21 +189,21 @@ class ConditionAction extends AutomationAction
         ];
     }
 
-    public function shouldContinue(ActionSubscriber $actionSubscriber): bool
+    public function shouldContinue(Subscriber $subscriber): bool
     {
         $actionClass = static::getAutomationActionClass();
         $action = $actionClass::findByUuid($this->uuid);
 
         /** @var \Spatie\Mailcoach\Domain\Automation\Support\Conditions\Condition $condition */
         $conditionClass = $this->condition;
-        $condition = new $conditionClass($action->automation, $actionSubscriber->subscriber, $this->conditionData);
+        $condition = new $conditionClass($action->automation, $subscriber, $this->conditionData);
 
         if ($condition->check()) {
             return true;
         }
 
         /** @var \Illuminate\Support\Carbon $addedToActionAt */
-        $addedToActionAt = $actionSubscriber->created_at;
+        $addedToActionAt = $subscriber->pivot->created_at;
 
         return $addedToActionAt->add($this->checkFor)->isPast();
     }

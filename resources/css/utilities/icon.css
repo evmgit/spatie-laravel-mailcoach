@@ -3,19 +3,20 @@
     align-items: center;
     @apply justify-start;
     @apply whitespace-nowrap;
-    @apply gap-2;
 }
 
-.icon-label-icon {
-    @apply opacity-70;
+.dropdown-list .icon-label {
+    @apply -mx-4;
+    @apply -my-1;
+    @apply px-4;
+    @apply py-1;
 }
 
-.icon-label-icon-caution {
-    @apply text-red-500;
-}
-
-.icon-label:hover .icon-label-icon-caution {
-    @apply text-red-700;
+.icon-label [class*='fa-'] {
+    justify-self: center;
+    @apply opacity-75;
+    transition: opacity 0.3s ease;
+    @apply mr-2;
 }
 
 .icon-label-text {

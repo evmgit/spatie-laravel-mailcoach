@@ -13,7 +13,7 @@ class DateTimeFieldRule implements Rule
 
     public function passes($attribute, $value)
     {
-        $this->message = (string) __mc('Invalid date time provided.');
+        $this->message = (string)__('Invalid date time provided.');
 
         if (! is_array($value)) {
             return false;
@@ -22,9 +22,9 @@ class DateTimeFieldRule implements Rule
         foreach (['date', 'hours', 'minutes'] as $requiredKey) {
             if (! array_key_exists($requiredKey, $value)) {
                 $this->message = [
-                    'date' => __mc('Date key is missing'),
-                    'hours' => __mc('Hours key is missing'),
-                    'minutes' => __mc('Minutes key is missing'),
+                    'date' => __('Date key is missing'),
+                    'hours' => __('Hours key is missing'),
+                    'minutes' => __('Minutes key is missing'),
                 ][$requiredKey];
 
                 return false;
@@ -38,7 +38,7 @@ class DateTimeFieldRule implements Rule
         }
 
         if (! $dateTime->isFuture()) {
-            $this->message = __mc('Date time must be in the future.');
+            $this->message = __('Date time must be in the future.');
 
             return false;
         }
@@ -61,7 +61,7 @@ class DateTimeFieldRule implements Rule
             $dateTime = Date::createFromFormat(
                 'Y-m-d H:i',
                 "{$value['date']} {$hours}:{$minutes}",
-                config('mailcoach.timezone') ?? config('app.timezone'),
+                config('app.timezone'),
             );
 
             return $dateTime;

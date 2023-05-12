@@ -2,7 +2,6 @@
 
 namespace Spatie\Mailcoach\Http\App\Queries;
 
-use Illuminate\Http\Request;
 use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
 use Spatie\Mailcoach\Http\App\Queries\Filters\CampaignStatusFilter;
 use Spatie\Mailcoach\Http\App\Queries\Filters\FuzzyFilter;
@@ -15,13 +14,11 @@ class CampaignsQuery extends QueryBuilder
 {
     use UsesMailcoachModels;
 
-    public function __construct(?Request $request = null)
+    public function __construct()
     {
-        parent::__construct(self::getCampaignClass()::query()->with('emailList')->withCount('sendsWithErrors'), $request);
+        parent::__construct($this->getCampaignClass()::query()->with('emailList'));
 
         $sentSort = AllowedSort::custom('sent', (new CampaignSort()))->defaultDirection('desc');
-
-        $filterFields = array_map('trim', config('mailcoach.campaigns.search_fields', ['name']));
 
         $this
             ->defaultSort($sentSort)
@@ -35,9 +32,9 @@ class CampaignsQuery extends QueryBuilder
                 $sentSort,
             )
             ->allowedFilters(
-                AllowedFilter::custom('search', new FuzzyFilter(...$filterFields)),
+                AllowedFilter::custom('search', new FuzzyFilter('name')),
                 AllowedFilter::custom('status', new CampaignStatusFilter()),
-                AllowedFilter::exact('email_list_id'),
+                AllowedFilter::exact('email_list_id')
             );
     }
 }

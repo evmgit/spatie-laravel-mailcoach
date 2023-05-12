@@ -14,13 +14,9 @@ use Throwable;
 class License
 {
     const STATUS_NOT_FOUND = 'not found';
-
     const STATUS_ACTIVE = 'active';
-
     const STATUS_EXPIRED = 'expired';
-
     const STATUS_INVALID = 'invalid';
-
     const STATUS_UNKNOWN = 'unknown';
 
     protected string $cacheKey = 'mailcoach-license-status';
@@ -41,7 +37,7 @@ class License
     {
         return Cache::remember(
             $this->cacheKey,
-            (int) CarbonInterval::week()->totalSeconds,
+            (int)CarbonInterval::week()->totalSeconds,
             function () {
                 try {
                     $licenseKey = $this->licenseKey();

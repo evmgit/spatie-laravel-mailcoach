@@ -13,10 +13,10 @@ class AppendSubscriberImportController
 
     public function __invoke(AppendSubscriberImportRequest $request, SubscriberImport $subscriberImport)
     {
-        $this->authorize('update', $subscriberImport->emailList);
+        $this->authorize("update", $subscriberImport->emailList);
 
         $subscriberImport->update([
-            'subscribers_csv' => $subscriberImport->subscribers_csv.PHP_EOL.$request->subscribers_csv,
+            'subscribers_csv' => $subscriberImport->subscribers_csv . PHP_EOL . $request->subscribers_csv,
         ]);
 
         return new SubscriberImportResource($subscriberImport);

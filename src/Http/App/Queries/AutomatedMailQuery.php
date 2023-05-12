@@ -2,7 +2,6 @@
 
 namespace Spatie\Mailcoach\Http\App\Queries;
 
-use Illuminate\Http\Request;
 use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
 use Spatie\Mailcoach\Http\App\Queries\Filters\FuzzyFilter;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -12,9 +11,9 @@ class AutomatedMailQuery extends QueryBuilder
 {
     use UsesMailcoachModels;
 
-    public function __construct(?Request $request = null)
+    public function __construct()
     {
-        parent::__construct($this::getAutomationMailClass()::query(), $request);
+        parent::__construct($this::getAutomationMailClass()::query());
 
         $this
             ->defaultSort('name')

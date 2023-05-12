@@ -1,18 +1,12 @@
-<form
-    class="form-grid"
-    wire:submit.prevent="saveTag"
-    @keydown.prevent.window.cmd.s="$wire.call('saveTag')"
-    @keydown.prevent.window.ctrl.s="$wire.call('saveTag')"
-    method="POST"
->
+<form class="form-grid" action="{{ route('mailcoach.emailLists.tag.store', $emailList) }}" method="POST">
     @csrf
 
-    <x-mailcoach::text-field :label="__mc('Name')" wire:model="name" name="name" required />
+    <x-mailcoach::text-field :label="__('Name')" name="name" required />
 
-    <x-mailcoach::form-buttons>
-        <x-mailcoach::button :label="__mc('Create tag')"/>
-        <button type="button" class="button-cancel" x-on:click="$store.modals.close('create-tag')">
-            {{ __mc('Cancel') }}
+    <div class="form-buttons">
+        <x-mailcoach::button :label="__('Create tag')"/>
+        <button type="button" class="button-cancel" data-modal-dismiss>
+            {{ __('Cancel') }}
         </button>
-    </x-mailcoach::form-buttons>
+    </div>
 </form>

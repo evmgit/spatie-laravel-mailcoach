@@ -2,8 +2,8 @@
 
 namespace Spatie\Mailcoach\Domain\Campaign\Enums;
 
-enum SendFeedbackType: string
+class SendFeedbackType
 {
-    case Bounce = 'bounce';
-    case Complaint = 'complaint';
+    const BOUNCE = 'bounce';
+    const COMPLAINT = 'complaint';
 }

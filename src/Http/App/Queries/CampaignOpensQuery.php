@@ -2,7 +2,6 @@
 
 namespace Spatie\Mailcoach\Http\App\Queries;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\Mailcoach\Domain\Campaign\Models\Campaign;
 use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
@@ -16,35 +15,32 @@ class CampaignOpensQuery extends QueryBuilder
 
     public int $totalCount;
 
-    public function __construct(Campaign $campaign, ?Request $request = null)
+    public function __construct(Campaign $campaign)
     {
         $prefix = DB::getTablePrefix();
 
         $campaignOpenTable = static::getCampaignOpenTableName();
-        $subscriberTableName = static::getSubscriberTableName();
-        $emailListTableName = static::getEmailListTableName();
 
         $query = static::getCampaignOpenClass()::query()
             ->selectRaw("
-                {$prefix}{$subscriberTableName}.uuid as subscriber_uuid,
-                {$prefix}{$emailListTableName}.uuid as subscriber_email_list_uuid,
-                {$prefix}{$subscriberTableName}.email as subscriber_email,
+                {$prefix}{$campaignOpenTable}.subscriber_id as subscriber_id,
+                {$prefix}{$this->getSubscriberTableName()}.email_list_id as subscriber_email_list_id,
+                {$prefix}{$this->getSubscriberTableName()}.email as subscriber_email,
                 count({$prefix}{$campaignOpenTable}.subscriber_id) as open_count,
                 min({$prefix}{$campaignOpenTable}.created_at) AS first_opened_at
             ")
             ->join(static::getCampaignTableName(), static::getCampaignTableName().'.id', '=', "{$campaignOpenTable}.campaign_id")
-            ->join($subscriberTableName, "{$subscriberTableName}.id", '=', "{$campaignOpenTable}.subscriber_id")
-            ->join($emailListTableName, "{$subscriberTableName}.email_list_id", '=', "{$emailListTableName}.id")
+            ->join($this->getSubscriberTableName(), "{$this->getSubscriberTableName()}.id", '=', "{$campaignOpenTable}.subscriber_id")
             ->where(static::getCampaignTableName().'.id', $campaign->id);
 
         $this->totalCount = $query->count();
 
-        parent::__construct($query, $request);
+        parent::__construct($query);
 
         $this
             ->defaultSort('-first_opened_at')
             ->allowedSorts('email', 'open_count', 'first_opened_at')
-            ->groupBy('subscriber_uuid', 'subscriber_email_list_uuid', 'subscriber_email')
+            ->groupBy("{$campaignOpenTable}.subscriber_id", "{$this->getSubscriberTableName()}.email_list_id", "{$this->getSubscriberTableName()}.email")
             ->allowedFilters(
                 AllowedFilter::custom(
                     'search',

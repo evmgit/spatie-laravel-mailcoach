@@ -13,7 +13,7 @@ class CampaignOpensController
 
     public function __invoke(Campaign $campaign)
     {
-        $this->authorize('view', $campaign);
+        $this->authorize("view", $campaign);
 
         $campaignOpens = new CampaignOpensQuery($campaign);
 

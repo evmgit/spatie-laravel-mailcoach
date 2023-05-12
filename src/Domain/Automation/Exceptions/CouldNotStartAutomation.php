@@ -3,7 +3,7 @@
 namespace Spatie\Mailcoach\Domain\Automation\Exceptions;
 
 use Exception;
-use Spatie\Mailcoach\Domain\Automation\Models\Automation;
+use Spatie\Mailcoach\Domain\Automation\Models\Automation ;
 
 class CouldNotStartAutomation extends Exception
 {

@@ -29,11 +29,11 @@ class SplitActionComponent extends AutomationActionComponent
             return;
         }
 
-        if ($data['name'] === $this->uuid.'-left-actions') {
+        if ($data['name'] === $this->uuid . '-left-actions') {
             $this->leftActions = $data['actions'];
         }
 
-        if ($data['name'] === $this->uuid.'-right-actions') {
+        if ($data['name'] === $this->uuid . '-right-actions') {
             $this->rightActions = $data['actions'];
         }
 

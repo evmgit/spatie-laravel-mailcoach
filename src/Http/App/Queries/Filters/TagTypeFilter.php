@@ -10,7 +10,7 @@ class TagTypeFilter implements Filter
 {
     public function __invoke(Builder $query, $value, string $property): Builder
     {
-        if (in_array($value, array_map(fn (TagType $type) => $type->value, TagType::cases()))) {
+        if (in_array($value, [TagType::DEFAULT, TagType::MAILCOACH])) {
             return $query->where('type', $value);
         }
 

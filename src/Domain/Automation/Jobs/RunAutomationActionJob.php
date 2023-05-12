@@ -8,8 +8,8 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Spatie\Mailcoach\Domain\Automation\Models\Action;
+use Spatie\Mailcoach\Domain\Shared\Support\Config;
 use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
-use Spatie\Mailcoach\Mailcoach;
 
 class RunAutomationActionJob implements ShouldQueue
 {
@@ -30,7 +30,7 @@ class RunAutomationActionJob implements ShouldQueue
 
         $this->queue = config('mailcoach.automation.perform_on_queue.run_automation_action_job');
 
-        $this->connection = $this->connection ?? Mailcoach::getQueueConnection();
+        $this->connection = $this->connection ?? Config::getQueueConnection();
     }
 
     public function handle()

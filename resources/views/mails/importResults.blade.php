@@ -1,16 +1,14 @@
 @component('mailcoach::mails.layout.message')
-{{ __mc('Good news!') }}
+{{ __('Good news!') }}
 
-{{ __mc('Your import was processed') }}.
+{{ __('Your import was processed') }}.
 
-{{ __mc('**:count** :subscriber have been added to the list :emailListName',['count'=>$subscriberImport->imported_subscribers_count,'emailListName'=>$subscriberImport->emailList->name,'subscriber'=> __mc_choice('subscriber|subscribers',$subscriberImport->imported_subscribers_count)]) }}.
+{{ __('**:count** :subscriber have been subscribed to the list :emailListName',['count'=>$subscriberImport->imported_subscribers_count,'emailListName'=>$subscriberImport->emailList->name,'subscriber'=>trans_choice(__('subscriber|subscribers'),$subscriberImport->imported_subscribers_count)]) }}.
 
-@if ($subscriberImport->errors)
-{{ __mc_choice('There was 1 error.|There were :count errors.', count($subscriberImport->errors ?? [])) }}
-@endif
+{{ trans_choice(__('There was 1 error.|There were :count errors.'), $subscriberImport->error_count) }}
 
-@component('mailcoach::mails.layout.button', ['url' => action([\Spatie\Mailcoach\Http\Api\Controllers\SubscriberImports\SubscriberImportsController::class, 'index'], $subscriberImport->emailList)])
-{{ __mc('View list') }}
+@component('mailcoach::mails.layout.button', ['url' => $subscriberImport->emailList->url])
+{{ __('View list') }}
 @endcomponent
 
 @endcomponent

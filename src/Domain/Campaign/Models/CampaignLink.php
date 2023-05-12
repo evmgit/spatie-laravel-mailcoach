@@ -7,15 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
 use Spatie\Mailcoach\Database\Factories\CampaignLinkFactory;
-use Spatie\Mailcoach\Domain\Shared\Models\HasUuid;
 use Spatie\Mailcoach\Domain\Shared\Models\Send;
 use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
 
 class CampaignLink extends Model
 {
-    use HasUuid;
     use HasFactory;
     use UsesMailcoachModels;
 
@@ -30,12 +27,12 @@ class CampaignLink extends Model
 
     public function campaign(): BelongsTo
     {
-        return $this->belongsTo(self::getCampaignClass(), 'campaign_id');
+        return $this->belongsTo(config('mailcoach.models.campaign'), 'campaign_id');
     }
 
     public function clicks(): HasMany
     {
-        return $this->hasMany(self::getCampaignClickClass());
+        return $this->hasMany(static::getCampaignClickClass());
     }
 
     public function registerClick(Send $send, ?DateTimeInterface $clickedAt = null): CampaignClick
@@ -45,7 +42,6 @@ class CampaignLink extends Model
             'send_id' => $send->id,
             'subscriber_id' => $send->subscriber->id,
             'created_at' => $clickedAt ?? now(),
-            'uuid' => Str::uuid(),
         ]);
 
         $numberOfTimesClickedBySubscriber = $this->clicks()

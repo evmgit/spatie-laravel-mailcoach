@@ -18,13 +18,11 @@ class UnsubscribeController
 
         $emailList = $subscriber->emailList;
 
-        if ($subscriber->status === SubscriptionStatus::Unsubscribed) {
+        if ($subscriber->status === SubscriptionStatus::UNSUBSCRIBED) {
             return view('mailcoach::landingPages.alreadyUnsubscribed', compact('emailList'));
         }
 
-        $send = $subscriber->sends()->where('uuid', $sendUuid)->first();
-
-        return view('mailcoach::landingPages.unsubscribe', compact('emailList', 'subscriber', 'send'));
+        return view('mailcoach::landingPages.unsubscribe', compact('emailList', 'subscriber'));
     }
 
     public function confirm(string $subscriberUuid, string $sendUuid = null)
@@ -36,7 +34,7 @@ class UnsubscribeController
 
         $emailList = $subscriber->emailList;
 
-        if ($subscriber->status === SubscriptionStatus::Unsubscribed) {
+        if ($subscriber->status === SubscriptionStatus::UNSUBSCRIBED) {
             return view('mailcoach::landingPages.alreadyUnsubscribed', compact('emailList'));
         }
 

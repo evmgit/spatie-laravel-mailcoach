@@ -3,16 +3,11 @@
 namespace Spatie\Mailcoach\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
+use Spatie\Mailcoach\Domain\Automation\Models\AutomationMail;
 
 class AutomationMailFactory extends Factory
 {
-    use UsesMailcoachModels;
-
-    public function modelName()
-    {
-        return static::getAutomationMailClass();
-    }
+    protected $model = AutomationMail::class;
 
     public function definition()
     {
@@ -22,6 +17,8 @@ class AutomationMailFactory extends Factory
             'from_email' => $this->faker->email,
             'from_name' => $this->faker->name,
             'html' => $this->faker->randomHtml(),
+            'track_opens' => $this->faker->boolean,
+            'track_clicks' => $this->faker->boolean,
             'uuid' => $this->faker->uuid,
             'last_modified_at' => now(),
         ];

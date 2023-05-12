@@ -9,30 +9,24 @@ use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
 
 class SendFeedbackItem extends Model
 {
-    use HasUuid;
     use UsesMailcoachModels;
 
     public $table = 'mailcoach_send_feedback_items';
 
     protected $guarded = [];
 
-    protected $casts = [
-        'send_feedback_id' => 'int',
-        'type' => SendFeedbackType::class,
-    ];
-
     public function send(): BelongsTo
     {
-        return $this->belongsTo(self::getSendClass());
+        return $this->belongsTo($this->getSendClass());
     }
 
     public function getFormattedTypeAttribute(): string
     {
         $formattedTypes = [
-            SendFeedbackType::Bounce->value => __mc('Bounced'),
-            SendFeedbackType::Complaint->value => __mc('Received complaint'),
+            SendFeedbackType::BOUNCE => __('Bounced'),
+            SendFeedbackType::COMPLAINT => __('Received complaint'),
         ];
 
-        return (string) ($formattedTypes[$this->type->value] ?? '');
+        return (string)$formattedTypes[$this->type] ?? '';
     }
 }

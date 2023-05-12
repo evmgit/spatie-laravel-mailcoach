@@ -1,24 +1,25 @@
 .dl {
-    @apply md:grid;
+    @apply grid;
     @apply grid-cols-auto-1fr;
     @apply justify-start;
-    @apply gap-x-6;
 }
 
 .dl dt {
-    @apply font-bold;
+    @apply font-semibold;
     @apply whitespace-nowrap;
-    @apply flex;
-    @apply items-start;
-    @apply md:justify-end;
-    @apply md:text-right;
+    @apply pr-12;
 }
 
 .dl dd {
-    @apply pb-6;
-    @apply mb-6;
     @apply grid;
     @apply gap-4;
+}
+
+
+.dl dt,
+.dl dd {
+    @apply py-2;
     @apply border-b;
-    @apply border-indigo-700/20;
+    @apply border-gray-400;
+    @apply border-opacity-20;
 }

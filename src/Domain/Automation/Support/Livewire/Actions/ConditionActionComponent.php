@@ -93,11 +93,11 @@ class ConditionActionComponent extends AutomationActionComponent
             return;
         }
 
-        if ($data['name'] === $this->uuid.'-yes-actions') {
+        if ($data['name'] === $this->uuid . '-yes-actions') {
             $this->yesActions = $data['actions'];
         }
 
-        if ($data['name'] === $this->uuid.'-no-actions') {
+        if ($data['name'] === $this->uuid . '-no-actions') {
             $this->noActions = $data['actions'];
         }
 

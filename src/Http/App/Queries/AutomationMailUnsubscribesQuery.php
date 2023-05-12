@@ -2,7 +2,6 @@
 
 namespace Spatie\Mailcoach\Http\App\Queries;
 
-use Illuminate\Http\Request;
 use Spatie\Mailcoach\Domain\Automation\Models\AutomationMail;
 use Spatie\Mailcoach\Http\App\Queries\Filters\FuzzyFilter;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -10,9 +9,9 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class AutomationMailUnsubscribesQuery extends QueryBuilder
 {
-    public function __construct(AutomationMail $automationMail, ?Request $request = null)
+    public function __construct(AutomationMail $automationMail)
     {
-        parent::__construct($automationMail->unsubscribes()->getQuery(), $request);
+        parent::__construct($automationMail->unsubscribes()->getQuery());
 
         $this
             ->defaultSort('-created_at')

@@ -1,65 +1,65 @@
 @component('mailcoach::mails.layout.message')
-{{ __mc('Hi') }},
+{{ __('Hi') }},
 
-{{ __mc('Campaign **:campaignName** was sent to **:numberOfSubscribers** subscribers (list :emailListName) on :sentAt', ['campaignName'=>$campaign->name,'numberOfSubscribers'=>($campaign->sent_to_number_of_subscribers ?? 0 ),'emailListName'=>$campaign->emailList->name,'sentAt'=>$campaign->sent_at->toMailcoachFormat()]) }}.
+{{ __('Campaign **:campaignName** was sent to **:numberOfSubscribers** subscribers (list :emailListName) on :sentAt', ['campaignName'=>$campaign->name,'numberOfSubscribers'=>($campaign->sent_to_number_of_subscribers ?? 0 ),'emailListName'=>$campaign->emailList->name,'sentAt'=>$campaign->sent_at->toMailcoachFormat()]) }}.
 
 <table class="stats">
 <tr>
-@if ($campaign->open_count)
+@if ($campaign->track_opens)
 <td>
 @include('mailcoach::mails.partials.statistic', [
 'href' => route('mailcoach.campaigns.opens', $campaign),
 'stat' => $campaign->open_count,
-'label' => __mc('Opens'),
+'label' => __('Opens'),
 ])
 </td>
 <td>
 @include('mailcoach::mails.partials.statistic', [
 'stat' => $campaign->unique_open_count,
-'label' => __mc('Unique Opens'),
+'label' => __('Unique Opens'),
 ])
 </td>
 <td>
 @include('mailcoach::mails.partials.statistic', [
 'stat' => number_format(($campaign->open_rate / 100), 2),
 'suffix' => '%',
-'label' => __mc('Open Rate'),
+'label' => __('Open Rate'),
 ])
 </td>
 @else
 <td colspan=3>
 <div class="text-4xl font-semibold">–</div>
-<div class="text-sm">{{ __mc('Opens not tracked') }}</div>
+<div class="text-sm">{{ __('Opens not tracked') }}</div>
 </td>
 @endif
 </tr>
 
 <tr>
-@if($campaign->click_count)
+@if($campaign->track_clicks)
 <td>
 @include('mailcoach::mails.partials.statistic', [
 'href' => route('mailcoach.campaigns.clicks', $campaign),
 'stat' => $campaign->click_count,
-'label' => __mc('Clicks'),
+'label' => __('Clicks'),
 ])
 </td>
 <td>
 @include('mailcoach::mails.partials.statistic', [
 'stat' => $campaign->unique_click_count,
-'label' => __mc('Unique Clicks'),
+'label' => __('Unique Clicks'),
 ])
 </td>
 <td>
 @include('mailcoach::mails.partials.statistic', [
 'stat' => number_format(($campaign->click_rate / 100), 2),
 'suffix' => '%',
-'label' => __mc('Clicks Rate'),
+'label' => __('Clicks Rate'),
 ])
 </td>
 @else
 <td colspan=3>
 <div class="text-4xl font-semibold">–</div>
-<div class="text-sm">{{ __mc('Clicks not tracked') }}</div>
+<div class="text-sm">{{ __('Clicks not tracked') }}</div>
 </td>
 @endif
 </tr>
@@ -69,13 +69,13 @@
 @include('mailcoach::mails.partials.statistic', [
 'href' => route('mailcoach.campaigns.unsubscribes', $campaign),
 'stat' => $campaign->unsubscribe_count,
-'label' => __mc('Unsubscribes'),
+'label' => __('Unsubscribes'),
 ])
 </td>
 <td>
 @include('mailcoach::mails.partials.statistic', [
 'stat' => number_format(($campaign->unsubscribe_rate / 100), 2),
-'label' => __mc('Unsubscribe Rate'),
+'label' => __('Unsubscribe Rate'),
 'suffix' => '%'
 ])
 </td>
@@ -102,10 +102,7 @@
 </table>
 
 @component('mailcoach::mails.layout.button', ['url' => $summaryUrl])
-{{ __mc('View summary') }}
+{{ __('View summary') }}
 @endcomponent
 
-@component('mailcoach::mails.layout.subcopy')
-[{{ __mc('Edit notification settings') }}]({{ $settingsUrl }})
-@endcomponent
 @endcomponent

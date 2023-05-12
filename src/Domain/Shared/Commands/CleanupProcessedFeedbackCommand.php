@@ -4,8 +4,8 @@ namespace Spatie\Mailcoach\Domain\Shared\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
-use Spatie\Mailcoach\Domain\Shared\Jobs\CleanupProcessedFeedbackJob;
 use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
+use Spatie\WebhookClient\Models\WebhookCall;
 
 class CleanupProcessedFeedbackCommand extends Command
 {
@@ -19,7 +19,15 @@ class CleanupProcessedFeedbackCommand extends Command
 
     public function handle()
     {
+        $this->comment('Start cleanup...');
+
         $hours = (int) $this->option('hours');
-        dispatch(new CleanupProcessedFeedbackJob($hours));
+
+        WebhookCall::query()
+            ->where('processed_at', '<', now()->subHours($hours))
+            ->whereIn('name', ['ses-feedback', 'sendgrid-feedback', 'mailgun-feedback', 'postmark-feedback'])
+            ->delete();
+
+        $this->comment('All done!');
     }
 }

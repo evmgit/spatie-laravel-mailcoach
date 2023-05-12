@@ -14,7 +14,7 @@ class SendCampaignController
 
     public function __invoke(SendCampaignRequest $request, Campaign $campaign)
     {
-        $this->authorize('update', $campaign);
+        $this->authorize("update", $campaign);
 
         $campaign->send();
 

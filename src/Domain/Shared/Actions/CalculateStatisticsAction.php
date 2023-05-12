@@ -39,11 +39,8 @@ class CalculateStatisticsAction
         [$unsubscribeCount, $unsubscribeRate] = $this->calculateUnsubscribeMetrics($sendable, $sentToNumberOfSubscribers);
         [$bounceCount, $bounceRate] = $this->calculateBounceMetrics($sendable, $sentToNumberOfSubscribers);
 
-        if (! $sendable instanceof Campaign) {
-            $sendable->sent_to_number_of_subscribers = $sentToNumberOfSubscribers;
-        }
-
         $sendable->update([
+            'sent_to_number_of_subscribers' => $sentToNumberOfSubscribers,
             'open_count' => $openCount,
             'unique_open_count' => $uniqueOpenCount,
             'open_rate' => $openRate,
@@ -61,7 +58,7 @@ class CalculateStatisticsAction
 
     protected function calculateLinkStatistics(Sendable $sendable): self
     {
-        $sendable->links()->each(function (CampaignLink|AutomationMailLink $link) {
+        $sendable->links()->each(function (CampaignLink | AutomationMailLink $link) {
             $tableName = $link instanceof CampaignLink
                 ? static::getCampaignClickTableName()
                 : static::getAutomationMailClickTableName();

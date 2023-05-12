@@ -2,7 +2,7 @@
 
 namespace Spatie\Mailcoach\Domain\Automation\Support\Actions;
 
-use Spatie\Mailcoach\Domain\Automation\Models\ActionSubscriber;
+use Spatie\Mailcoach\Domain\Audience\Models\Subscriber;
 use Spatie\Mailcoach\Domain\Automation\Support\Actions\Enums\ActionCategoryEnum;
 
 class RemoveTagsAction extends AutomationAction
@@ -11,7 +11,7 @@ class RemoveTagsAction extends AutomationAction
 
     public static function getCategory(): ActionCategoryEnum
     {
-        return ActionCategoryEnum::Tags;
+        return ActionCategoryEnum::tags();
     }
 
     public static function make(array $data): self
@@ -28,7 +28,7 @@ class RemoveTagsAction extends AutomationAction
 
     public static function getName(): string
     {
-        return (string) __mc('Remove tags');
+        return (string) __('Remove tags');
     }
 
     public function getDescription(): string
@@ -38,7 +38,7 @@ class RemoveTagsAction extends AutomationAction
 
     public static function getComponent(): ?string
     {
-        return 'mailcoach::remove-tags-action';
+        return 'remove-tags-action';
     }
 
     public function toArray(): array
@@ -48,8 +48,8 @@ class RemoveTagsAction extends AutomationAction
         ];
     }
 
-    public function run(ActionSubscriber $actionSubscriber): void
+    public function run(Subscriber $subscriber): void
     {
-        $actionSubscriber->subscriber->removeTags($this->tags);
+        $subscriber->removeTags($this->tags);
     }
 }

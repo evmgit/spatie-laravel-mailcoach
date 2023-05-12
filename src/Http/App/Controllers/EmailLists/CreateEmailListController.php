@@ -22,7 +22,7 @@ class CreateEmailListController
 
         $updateEmailListAction->execute($emailList, $request);
 
-        flash()->success(__mc('List :emailList was created', ['emailList' => $emailList->name]));
+        flash()->success(__('List :emailList was created', ['emailList' => $emailList->name]));
 
         return redirect()->route('mailcoach.emailLists.general-settings', $emailList);
     }

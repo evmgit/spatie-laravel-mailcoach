@@ -9,9 +9,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Mailcoach\Database\Factories\ActionFactory;
 use Spatie\Mailcoach\Domain\Audience\Models\Subscriber;
-use Spatie\Mailcoach\Domain\Automation\Jobs\RunActionForActionSubscriberJob;
+use Spatie\Mailcoach\Domain\Automation\Jobs\RunActionForSubscriberJob;
 use Spatie\Mailcoach\Domain\Automation\Support\Actions\AutomationAction;
-use Spatie\Mailcoach\Domain\Shared\Models\HasUuid;
+use Spatie\Mailcoach\Domain\Campaign\Models\Concerns\HasUuid;
 use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
 
 class Action extends Model
@@ -65,18 +65,6 @@ class Action extends Model
             ->withTimestamps();
     }
 
-    public function actionSubscribers(): HasMany
-    {
-        return $this->hasMany(self::getActionSubscriberClass());
-    }
-
-    public function pendingActionSubscribers(): HasMany
-    {
-        return $this
-            ->actionSubscribers()
-            ->whereNull(['halted_at', 'completed_at', 'job_dispatched_at']);
-    }
-
     public function activeSubscribers(): BelongsToMany
     {
         return $this->subscribers()
@@ -88,12 +76,6 @@ class Action extends Model
     {
         return $this->subscribers()
             ->wherePivotNotNull('run_at');
-    }
-
-    public function haltedSubscribers(): BelongsToMany
-    {
-        return $this->subscribers()
-            ->wherePivotNotNull('halted_at');
     }
 
     public function automation(): BelongsTo
@@ -111,6 +93,11 @@ class Action extends Model
         return $this->hasMany(static::getAutomationActionClass(), 'parent_id')->orderBy('order');
     }
 
+    public function next(): ?Action
+    {
+        return $this->automation->actions->where('order', '>', $this->order)->first();
+    }
+
     public function toLivewireArray(): array
     {
         return [
@@ -118,19 +105,18 @@ class Action extends Model
             'class' => get_class($this->action),
             'data' => $this->action->toArray(),
             'active' => (int) ($this->active_subscribers_count ?? 0),
-            'completed' => ($this->completed_subscribers_count ?? 0) - ($this->halted_subscribers_count ?? 0),
-            'halted' => (int) ($this->halted_subscribers_count ?? 0),
+            'completed' => (int) ($this->completed_subscribers_count ?? 0),
         ];
     }
 
     public function run()
     {
-        $this->action->getActionSubscribersQuery($this)
-            ->lazyById()
-            ->each(function (ActionSubscriber $actionSubscriber): void {
-                $actionSubscriber->update(['job_dispatched_at' => now()]);
-
-                dispatch(new RunActionForActionSubscriberJob($actionSubscriber))->afterCommit();
+        $this->subscribers()
+            ->wherePivotNull('halted_at')
+            ->wherePivotNull('completed_at')
+            ->cursor()
+            ->each(function (Subscriber $subscriber) {
+                dispatch(new RunActionForSubscriberJob($this, $subscriber));
             });
     }
 

@@ -6,6 +6,6 @@ class HomeController
 {
     public function __invoke()
     {
-        return redirect()->route(config('mailcoach.redirect_home', 'mailcoach.dashboard'));
+        return redirect()->route('mailcoach.campaigns');
     }
 }

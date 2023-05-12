@@ -9,22 +9,9 @@ class UpdateCampaignContentRequest extends FormRequest
 {
     public function rules(): array
     {
-        $template = $this->route('campaign')?->template;
-
-        if (! $template?->containsPlaceHolders() ?? false) {
-            return [
-                'html' => ['required', new HtmlRule()],
-                'structured_html' => ['nullable'],
-            ];
-        }
-
-        return [];
-    }
-
-    public function templateField(mixed $placeHolderName): string
-    {
-        $formFieldName = 'field_'.$placeHolderName;
-
-        return $this->$formFieldName ?? '';
+        return [
+            'html' => ['required', new HtmlRule()],
+            'structured_html' => ['nullable'],
+        ];
     }
 }

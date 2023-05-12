@@ -4,22 +4,19 @@
 
 .dropdown-list {
     @apply absolute;
-    @apply left-1/2;
+    @apply grid;
     @apply top-full;
-    @apply -translate-x-1/2;
-    @apply py-3;
-    @apply rounded;
-    @apply transition-opacity;
-    @apply duration-200;
-    @apply z-50;
-    @apply min-w-32;
-    @apply will-change-auto;
-    @apply bg-white;
-    @apply rounded;
+    @apply mt-4;
+    @apply py-4;
     @apply shadow-xl;
-    @apply shadow-blue-800/10;
+    @apply z-10;
+    @apply bg-white;
+    @apply text-gray-700;
     @apply border;
-    @apply border-indigo-900/10;
+    @apply border-gray-200;
+    left: 50%;
+    transform: translateX(-50%);
+    @apply min-w-32;
 }
 
 .dropdown-list-left {
@@ -33,28 +30,26 @@
 .dropdown-list:before {
     content: '';
     @apply absolute;
-    @apply top-0;
-    @apply left-1/2;
-    @apply -translate-x-1/2;
-    @apply w-3;
-    @apply h-3;
+    left: 50%;
+    top: 0;
+    width: 0.75rem;
+    height: 0.75rem;
     @apply bg-white;
-    @apply -translate-y-1/2;
-    @apply rotate-45;
+    transform: translate(-50%, -50%) rotate(45deg);
     @apply border-l;
     @apply border-t;
-    @apply border-indigo-900/10;
+    @apply border-gray-200;
 }
 
 .dropdown-list-left:before {
     right: 0;
     left: auto;
-    @apply -translate-x-5;
+    transform: translate(-1.25rem, -50%) rotate(45deg);
 }
 
 .dropdown-list-right:before {
     left: 0;
-    @apply translate-x-5;
+    transform: translate(1.25rem, -50%) rotate(45deg);
 }
 
 .dropdown-list li {
@@ -65,18 +60,26 @@
 .dropdown-list button {
     @apply block;
     @apply w-full;
-    @apply py-2;
-    @apply px-4;
-    @apply text-sm;
-    @apply text-gray-800;
-    @apply font-normal;
-    @apply hover:bg-gradient-to-r;
-    @apply hover:from-blue-50;
-    @apply hover:to-blue-100/70;
-    @apply hover:text-blue-900;
-    @apply no-underline;
+    @apply px-6;
+    @apply py-1;
+    @apply text-left;
 }
 
-.dropdown-list li.active a {
-    @apply text-blue-700;
+.dropdown-list li.active a{
+    @apply text-blue-500;
+}
+
+.dropdown-list a:hover,
+.dropdown-list button:hover {
+    @apply bg-blue-100;
+    @apply bg-opacity-50;
+    @apply text-blue-500;
+}
+
+.dropdown-trigger i {
+    transition: transform 0.15s ease;
+}
+
+.dropdown-trigger-open .dropdown-trigger i{
+    transform: rotate(-90deg);
 }

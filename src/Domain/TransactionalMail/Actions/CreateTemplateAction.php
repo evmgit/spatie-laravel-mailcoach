@@ -10,7 +10,7 @@ class CreateTemplateAction
 
     public function execute(array $attributes)
     {
-        return $this->getTransactionalMailClass()::create([
+        return $this->getTransactionalMailTemplateClass()::create([
             'name' => $attributes['name'],
             'type' => $attributes['type'],
         ]);

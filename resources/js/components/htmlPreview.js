@@ -12,3 +12,5 @@ function updateHtmlPreview() {
 }
 
 listen('input', '[data-html-preview-source]', updateHtmlPreview);
+
+document.addEventListener('turbolinks:load', updateHtmlPreview);

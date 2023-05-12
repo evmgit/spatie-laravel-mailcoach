@@ -12,7 +12,8 @@
     @apply place-center;
     @apply w-8;
     @apply h-full;
-    @apply text-blue-500;
+    @apply text-blue-600;
+    opacity: 0.75;
 }
 
 .select select {
@@ -22,6 +23,17 @@
     @apply pr-8;
     @apply h-full;
     @apply min-h-0;
+    @apply text-gray-800;
+    @apply border;
+    @apply border-blue-200;
+    @apply border-opacity-50;
+}
+
+.select select:focus {
+    @apply border-blue-400;
+    @apply outline-none;
+    @apply bg-white;
+    @apply shadow-focus;
 }
 
 select:disabled {

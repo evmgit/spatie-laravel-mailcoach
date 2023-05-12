@@ -20,6 +20,13 @@ class InactiveSubscriber extends Model
 
     public function subscriber(): BelongsTo
     {
-        return $this->belongsTo(self::getSubscriberClass(), 'subscriber_id');
+        return $this->belongsTo(config('mailcoach.models.subscriber'), 'subscriber_id');
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $field ??= $this->getRouteKeyName();
+
+        return $this->getSubscriberClass()::where($field, $value)->firstOrFail();
     }
 }

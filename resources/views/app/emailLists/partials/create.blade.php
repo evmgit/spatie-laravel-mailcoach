@@ -1,18 +1,14 @@
-<form
-    class="form-grid"
-    wire:submit.prevent="saveList"
-    @keydown.prevent.window.cmd.s="$wire.call('saveList')"
-    @keydown.prevent.window.ctrl.s="$wire.call('saveList')"
-    method="POST"
->
-    <x-mailcoach::text-field :label="__mc('Name')"  wire:model.lazy="name" name="name" :placeholder="__mc('Subscribers')" required />
-    <x-mailcoach::text-field :label="__mc('From email')" :placeholder="auth()->guard(config('mailcoach.guard'))->user()->email" wire:model.lazy="default_from_email" name="default_from_email" type="email" required />
-    <x-mailcoach::text-field :label="__mc('From name')" :placeholder="auth()->guard(config('mailcoach.guard'))->user()->name" wire:model.lazy="default_from_name" name="default_from_name" />
+<form class="form-grid" action="{{ route('mailcoach.emailLists.store') }}" method="POST">
+    @csrf
 
-    <x-mailcoach::form-buttons>
-        <x-mailcoach::button :label="__mc('Create list')" />
-        <button type="button" class="button-cancel"  x-on:click="$store.modals.close('create-list')">
-            {{ __mc('Cancel') }}
+    <x-mailcoach::text-field :label="__('Name')"  name="name" :placeholder="__('Subscribers')" required />
+    <x-mailcoach::text-field :label="__('From email')" :placeholder="auth()->user()->email" name="default_from_email" type="email" required />
+    <x-mailcoach::text-field :label="__('From name')" :placeholder="auth()->user()->name" name="default_from_name" />
+
+    <div class="form-buttons">
+        <x-mailcoach::button :label="__('Create list')" />
+        <button type="button" class="button-cancel" data-modal-dismiss>
+            {{ __('Cancel') }}
         </button>
-    </x-mailcoach::form-buttons>
+    </div>
 </form>

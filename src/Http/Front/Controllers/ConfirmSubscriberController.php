@@ -12,7 +12,8 @@ class ConfirmSubscriberController
 
     public function __invoke(string $subscriberUuid)
     {
-        $subscriber = self::getSubscriberClass()::findByUuid($subscriberUuid);
+        /** @var \Spatie\Mailcoach\Domain\Audience\Models\Subscriber $subscriber */
+        $subscriber = $this->getSubscriberClass()::findByUuid($subscriberUuid);
 
         if (! $subscriber) {
             return $this->couldNotFindSubscriptionResponse();

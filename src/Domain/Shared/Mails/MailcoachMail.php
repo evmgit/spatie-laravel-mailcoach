@@ -4,11 +4,9 @@ namespace Spatie\Mailcoach\Domain\Shared\Mails;
 
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
-use Spatie\Mailcoach\Domain\Automation\Models\AutomationMail;
-use Spatie\Mailcoach\Domain\Campaign\Models\Campaign;
 use Spatie\Mailcoach\Domain\Shared\Models\Send;
 use Spatie\Mailcoach\Domain\Shared\Models\Sendable;
-use Symfony\Component\Mime\Email;
+use Swift_Message;
 
 class MailcoachMail extends Mailable
 {
@@ -34,7 +32,7 @@ class MailcoachMail extends Mailable
 
     public $textView = null;
 
-    public function setSend(Send $send): static
+    public function setSend(Send $send): self
     {
         $this->send = $send;
 
@@ -43,7 +41,7 @@ class MailcoachMail extends Mailable
         return $this;
     }
 
-    public function setFrom(string $fromEmail, string $fromName = null): static
+    public function setFrom(string $fromEmail, string $fromName = null): self
     {
         $this->fromEmail = $fromEmail;
 
@@ -52,77 +50,80 @@ class MailcoachMail extends Mailable
         return $this;
     }
 
-    public function setReplyTo(string $replyToEmail, string $replyToName = null): static
+    public function setReplyTo(string $replyToEmail, string $replyToName = null): self
     {
         $this->replyToEmail = $replyToEmail;
 
         $this->replyToName = $replyToName;
 
+        $this->replyTo($replyToEmail, $replyToName);
+
         return $this;
     }
 
-    public function setHtmlView(string $htmlView): static
+    public function setHtmlView(string $htmlView): self
     {
         $this->htmlView = $htmlView;
 
         return $this;
     }
 
-    public function setTextView(string $textView): static
+    public function setTextView(string $textView): self
     {
         $this->textView = $textView;
 
         return $this;
     }
 
-    public function setSendable(Sendable $sendable): static
+    public function setSendable(Sendable $sendable): self
     {
         $this->sendable = $sendable;
 
         $this->setFrom(
-            $sendable->getFromEmail($this->send),
-            $sendable->getFromName($this->send),
+            $sendable->from_email
+            ?? $sendable->emailList->default_from_email
+            ?? optional($this->send)->subscriber->emailList->default_from_email,
+            $sendable->from_name
+            ?? $sendable->emailList->default_from_name
+            ?? optional($this->send)->subscriber->emailList->default_from_name
+            ?? null
         );
 
-        $replyTo = $sendable->getReplyToEmail($this->send);
+        $replyTo = $this->sendable->reply_to_email
+            ?? $this->sendable->emailList->reply_to_email
+            ?? optional($this->send)->subscriber->emailList->reply_to_email
+            ?? null;
 
         if ($replyTo) {
-            $replyToName = $sendable->getReplyToName($this->send);
+            $replyToName = $this->sendable->reply_to_name
+                ?? $this->sendable->emailList->default_reply_to_name
+                ?? optional($this->send)->subscriber->emailList->default_reply_to_name
+                ?? null;
             $this->setReplyTo($replyTo, $replyToName);
         }
 
-        $htmlView = match (true) {
-            $sendable instanceof AutomationMail => 'mailcoach::mails.automation.automationHtml',
-            $sendable instanceof Campaign => 'mailcoach::mails.campaignHtml',
-        };
-
-        $textView = match (true) {
-            $sendable instanceof AutomationMail => 'mailcoach::mails.automation.automationText',
-            $sendable instanceof Campaign => 'mailcoach::mails.campaignText',
-        };
-
         $this
-            ->setHtmlView($htmlView)
-            ->setTextView($textView);
+            ->setHtmlView('mailcoach::mails.campaignHtml')
+            ->setTextView('mailcoach::mails.campaignText');
 
         return $this;
     }
 
-    public function setHtmlContent(string $htmlContent = ''): static
+    public function setHtmlContent(string $htmlContent = ''): self
     {
         $this->htmlContent = $htmlContent;
 
         return $this;
     }
 
-    public function setTextContent(string $textContent): static
+    public function setTextContent(string $textContent): self
     {
         $this->textContent = $textContent;
 
         return $this;
     }
 
-    public function subject($subject): static
+    public function subject($subject): self
     {
         if (! empty($this->subject)) {
             return $this;
@@ -150,18 +151,18 @@ class MailcoachMail extends Mailable
         return $mail;
     }
 
-    protected function addUnsubscribeHeaders(): static
+    protected function addUnsubscribeHeaders(): self
     {
         if (is_null($this->send)) {
             return $this;
         }
 
-        $this->withSymfonyMessage(function (Email $message) {
+        $this->withSwiftMessage(function (Swift_Message $message) {
             $message
                 ->getHeaders()
                 ->addTextHeader(
                     'List-Unsubscribe',
-                    '<'.$this->send->subscriber->unsubscribeUrl($this->send).'>'
+                    '<' . $this->send->subscriber->unsubscribeUrl($this->send) . '>'
                 );
 
             $message
@@ -182,16 +183,13 @@ class MailcoachMail extends Mailable
         return $this;
     }
 
-    protected function storeTransportMessageId(): static
+    protected function storeTransportMessageId(): self
     {
         if (is_null($this->send)) {
             return $this;
         }
-
-        $this->withSymfonyMessage(function (Email $message) {
-            $messageId = $message->generateMessageId();
-            $message->getHeaders()->addIdHeader('Message-ID', $messageId);
-            $this->send->storeTransportMessageId($messageId);
+        $this->withSwiftMessage(function (Swift_Message $message) {
+            $this->send->storeTransportMessageId($message->getId());
         });
 
         return $this;

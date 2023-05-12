@@ -1,5 +1,6 @@
 <?php
 
+
 namespace Spatie\Mailcoach\Domain\Automation\Support\Triggers;
 
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
@@ -30,10 +31,10 @@ abstract class AutomationTrigger extends AutomationStep
         return [];
     }
 
-    public function runAutomation(Subscriber|Collection|QueryBuilder|EloquentBuilder|array $subscribers): void
+    public function runAutomation(Subscriber | Collection | QueryBuilder | EloquentBuilder | array $subscribers): void
     {
         if ($subscribers instanceof EloquentBuilder || $subscribers instanceof QueryBuilder) {
-            $subscribers = $subscribers->lazyById();
+            $subscribers = $subscribers->cursor();
         }
 
         if ($subscribers instanceof Subscriber || is_array($subscribers)) {

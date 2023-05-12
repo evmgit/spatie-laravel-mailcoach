@@ -1,5 +1,7 @@
-<button
-    {{ $attributes->merge(['type' => 'button', 'class' => 'button-cancel'])->except(['label']) }}
+
+<button 
+    {{ $attributes->merge(['type' => 'button', 'class' => 'button-cancel'])->except(['label']) }} 
+    data-modal-dismiss
 >
-    {{ $label ?? __mc('Cancel')  }}
+    {{ $label ?? __('Cancel')  }}
 </button>

@@ -1,5 +1,6 @@
 <?php
 
+
 namespace Spatie\Mailcoach\Domain\Automation\Support;
 
 use Illuminate\Support\Str;

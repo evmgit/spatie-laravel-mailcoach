@@ -1,7 +1,8 @@
 .tabs {
+    @apply bg-white;
     overflow-x: scroll;
     z-index: 1;
-    @apply mb-6;
+    @apply mb-10;
 }
 
 .tabs::-webkit-scrollbar {
@@ -10,36 +11,46 @@
 }
 
 .tabs ul {
-    @apply flex;
-    @apply gap-6;
-    @apply items-center;
+    @apply inline-grid;
+    @apply grid-cols-auto;
+    @apply grid-flow-col;
+    @apply justify-start;
+    width: auto;
+}
+
+.tabs li {
+    @apply cursor-pointer;
+    @apply font-bold;
 }
 
 .tabs li a {
-    display: flex;
-    @apply h-10;
-    @apply pl-1;
-    @apply items-center;
-    @apply leading-none;
-    @apply text-sm;
+    @apply bg-blue-100;
+    @apply bg-opacity-50;
+    @apply inline-block;
+    @apply py-3;
+    @apply px-6;
+}
+
+.tabs li:first-child a {
+    @apply rounded-l-full;
+
+}
+
+.tabs li:last-child a {
+    @apply rounded-r-full;
+
+}
+
+.tabs li.active a {
+    @apply bg-blue-200;
+    @apply bg-opacity-75;
+}
+
+.tabs li:not(.active) a {
+    @apply text-gray-500;
+    @apply text-opacity-50;
+}
+
+.tabs li:not(.active) a:hover {
     @apply text-black;
-    @apply hover:text-blue-800;
-    @apply font-medium;
-}
-
-.tabs li.navigation-item-active a {
-    @apply text-blue-700;
-}
-
-.tabs li.navigation-item-active a:after {
-    content: '';
-    @apply absolute;
-    @apply left-0;
-    @apply bottom-0;
-    @apply h-[3px];
-    @apply w-full;
-    @apply rounded-full;
-    @apply bg-gradient-to-r;
-    @apply from-blue-400;
-    @apply to-indigo-500;
 }

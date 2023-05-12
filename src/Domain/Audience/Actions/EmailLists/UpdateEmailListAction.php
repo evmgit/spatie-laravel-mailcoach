@@ -5,11 +5,10 @@ namespace Spatie\Mailcoach\Domain\Audience\Actions\EmailLists;
 use Spatie\Mailcoach\Domain\Audience\Models\EmailList;
 use Spatie\Mailcoach\Http\Api\Requests\UpdateEmailListSettingsRequest;
 use Spatie\Mailcoach\Http\App\Requests\EmailLists\Settings\UpdateEmailListGeneralSettingsRequest;
-use Spatie\Mailcoach\Mailcoach;
 
 class UpdateEmailListAction
 {
-    public function execute(EmailList $emailList, UpdateEmailListGeneralSettingsRequest|UpdateEmailListSettingsRequest $request): EmailList
+    public function execute(EmailList $emailList, UpdateEmailListGeneralSettingsRequest | UpdateEmailListSettingsRequest $request): EmailList
     {
         $emailList->fill([
             'name' => $request->name,
@@ -17,9 +16,8 @@ class UpdateEmailListAction
             'default_from_name' => $request->default_from_name,
             'default_reply_to_email' => $request->default_reply_to_email ?? $request->default_from_email,
             'default_reply_to_name' => $request->default_reply_to_name ?? $request->default_from_name,
-            'campaign_mailer' => $request->campaign_mailer ?? Mailcoach::defaultCampaignMailer(),
-            'automation_mailer' => $request->automation_mailer ?? Mailcoach::defaultAutomationMailer(),
-            'transactional_mailer' => $request->transactional_mailer ?? Mailcoach::defaultTransactionalMailer(),
+            'campaign_mailer' => $request->campaign_mailer ?? config('mailcoach.campaigns.mailer') ?? config('mailcoach.mailer') ?? config('mail.default'),
+            'transactional_mailer' => $request->transactional_mailer ?? config('mailcoach.transactional.mailer') ?? config('mailcoach.mailer') ?? config('mail.default'),
             'campaigns_feed_enabled' => $request->campaigns_feed_enabled ?? false,
             'report_recipients' => $request->report_recipients,
             'report_campaign_sent' => $request->report_campaign_sent ?? false,
@@ -35,11 +33,22 @@ class UpdateEmailListAction
 
         if ($request instanceof UpdateEmailListSettingsRequest) {
             $emailList->fill([
-                'confirmation_mail_id' => $request->sendDefaultConfirmationMail() ? null : $request->confirmation_mail_id,
+                'send_welcome_mail' => $request->sendWelcomeMail(),
+                'welcome_mail_subject' => $request->welcome_mail === UpdateEmailListSettingsRequest::WELCOME_MAIL_CUSTOM_CONTENT
+                    ? $request->welcome_mail_subject
+                    : '',
+                'welcome_mail_content' => $request->welcome_mail === UpdateEmailListSettingsRequest::WELCOME_MAIL_CUSTOM_CONTENT
+                    ? $request->welcome_mail_content
+                    : '',
+                'welcome_mail_delay_in_minutes' => $request->welcome_mail_delay_in_minutes ?? 0,
+                'confirmation_mail_subject' => $request->sendDefaultConfirmationMail() ? null : $request->confirmation_mail_subject,
+                'confirmation_mail_content' => $request->sendDefaultConfirmationMail() ? null : $request->confirmation_mail_content,
             ]);
 
             $emailList->allowedFormSubscriptionTags()->sync($request->allowedFormSubscriptionTags());
         }
+
+
 
         $emailList->save();
 

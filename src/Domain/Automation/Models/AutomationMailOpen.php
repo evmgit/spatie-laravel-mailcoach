@@ -6,12 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Mailcoach\Database\Factories\AutomationMailOpenFactory;
-use Spatie\Mailcoach\Domain\Shared\Models\HasUuid;
 use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
 
 class AutomationMailOpen extends Model
 {
-    use HasUuid;
     use HasFactory;
     use UsesMailcoachModels;
 
@@ -25,7 +23,7 @@ class AutomationMailOpen extends Model
 
     public function send(): BelongsTo
     {
-        return $this->belongsTo(self::getSendClass(), 'send_id');
+        return $this->belongsTo($this->getSendClass(), 'send_id');
     }
 
     protected static function newFactory(): AutomationMailOpenFactory

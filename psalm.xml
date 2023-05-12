@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<psalm
+    errorLevel="4"
+    findUnusedVariablesAndParams="true"
+    resolveFromConfigFile="true"
+    useDocblockPropertyTypes="true"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+>
+    <projectFiles>
+        <directory name="src"/>
+         <ignoreFiles>
+            <directory name="vendor"/>
+        </ignoreFiles>
+    </projectFiles>
+
+    <issueHandlers>
+        <UndefinedPropertyAssignment>
+            <errorLevel type="suppress">
+                <directory name="src"/>
+            </errorLevel>
+        </UndefinedPropertyAssignment>
+        <UndefinedPropertyFetch>
+            <errorLevel type="suppress">
+                <directory name="src"/>
+            </errorLevel>
+        </UndefinedPropertyFetch>
+        <DuplicateArrayKey>
+            <errorLevel type="suppress">
+                <file name="src/Http/App/ViewModels/EmailListSummaryViewModel.php"/>
+                <file name="src/Http/App/ViewModels/CampaignSummaryViewModel.php"/>
+            </errorLevel>
+        </DuplicateArrayKey>
+        <NullableReturnStatement>
+            <errorLevel type="suppress">
+                <file name="src/Http/App/Requests/Campaigns/ScheduleCampaignRequest.php"/>
+                <file name="src/Domain/Audience/Support/Segments/SubscribersWithTagsSegment.php"/>
+            </errorLevel>
+        </NullableReturnStatement>
+        <UndefinedMethod>
+            <errorLevel type="suppress">
+                <file name="src/MailcoachServiceProvider.php"/>
+            </errorLevel>
+        </UndefinedMethod>
+        <InvalidReturnStatement>
+            <errorLevel type="suppress">
+                <file name="src/Domain/Audience/Support/Segments/SubscribersWithTagsSegment.php"/>
+                <file name="src/Domain/Shared/Models/Send.php"/>
+                <file name="src/Domain/Campaign/Models/Campaign.php"/>
+                <file name="src/Domain/Automation/Models/AutomationMail.php"/>
+                <file name="src/Components/DateTimeFieldComponent.php"/>
+                <file name="src/Components/FilterComponent.php"/>
+                <file name="src/Components/CampaignReplacerHelpTextsComponent.php"/>
+                <file name="src/Components/AutomationMailReplacerHelpTextsComponent.php"/>
+                <file name="src/Components/SearchComponent.php"/>
+                <file name="src/Components/THComponent.php"/>
+            </errorLevel>
+        </InvalidReturnStatement>
+        <InvalidArgument>
+            <errorLevel type="suppress">
+                <file name="src/Domain/Campaign/Support/Replacers/Concerns/ReplacesModelAttributes.php"/>
+                <file name="src/Domain/Campaign/Actions/SendCampaignAction.php"/>
+                <referencedFunction name="Spatie\QueryBuilder\QueryBuilder::__construct"/>
+                <referencedFunction name="Spatie\Mailcoach\Domain\Automation\Support\Triggers\AutomationTrigger::runAutomation"/>
+            </errorLevel>
+        </InvalidArgument>
+        <InvalidNullableReturnType>
+            <errorLevel type="suppress">
+                <file name="src/Http/App/Requests/Campaigns/ScheduleCampaignRequest.php"/>
+            </errorLevel>
+        </InvalidNullableReturnType>
+        <InvalidReturnType>
+            <errorLevel type="suppress">
+                <file name="src/Domain/Audience/Support/Segments/SubscribersWithTagsSegment.php"/>
+                <file name="src/Domain/Shared/Models/Send.php"/>
+                <file name="src/Domain/Campaign/Models/Campaign.php"/>
+                <file name="src/Domain/Automation/Models/AutomationMail.php"/>
+                <file name="src/Components/DateTimeFieldComponent.php"/>
+                <file name="src/Components/FilterComponent.php"/>
+                <file name="src/Components/AutomationMailReplacerHelpTextsComponent.php"/>
+                <file name="src/Components/CampaignReplacerHelpTextsComponent.php"/>
+                <file name="src/Components/SearchComponent.php"/>
+                <file name="src/Components/THComponent.php"/>
+            </errorLevel>
+        </InvalidReturnType>
+        <UndefinedMethod>
+            <errorLevel type="suppress">
+                <file name="src/Domain/Audience/Actions/Subscribers/ImportSubscribersAction.php"/>
+                <file name="src/MailcoachServiceProvider.php"/>
+                <referencedMethod name="Generator::map"/>
+                <referencedMethod name="Generator::each"/>
+            </errorLevel>
+        </UndefinedMethod>
+        <UndefinedClass>
+            <errorLevel type="suppress">
+                <referencedClass name="Swift_Message"/>
+            </errorLevel>
+        </UndefinedClass>
+        <ImplicitToStringCast>
+            <errorLevel type="suppress">
+                <file name="src/Http/App/ViewModels/EmailListSummaryViewModel.php"/>
+                <file name="src/Domain/Audience/Models/EmailList.php"/>
+            </errorLevel>
+        </ImplicitToStringCast>
+
+        <!-- @todo: Can't get this to work within a package? Ide helper or migrations somehow? -->
+        <UndefinedMagicPropertyFetch>
+            <errorLevel type="suppress">
+                <directory name="src"/>
+            </errorLevel>
+        </UndefinedMagicPropertyFetch>
+        <UndefinedThisPropertyFetch>
+            <errorLevel type="suppress">
+                <directory name="src"/>
+            </errorLevel>
+        </UndefinedThisPropertyFetch>
+        <UndefinedThisPropertyAssignment>
+            <errorLevel type="suppress">
+                <directory name="src"/>
+            </errorLevel>
+        </UndefinedThisPropertyAssignment>
+        <UndefinedMagicPropertyAssignment>
+            <errorLevel type="suppress">
+                <directory name="src"/>
+            </errorLevel>
+        </UndefinedMagicPropertyAssignment>
+    </issueHandlers>
+<plugins><pluginClass class="Psalm\LaravelPlugin\Plugin"/></plugins></psalm>

@@ -2,58 +2,40 @@
 
 namespace Spatie\Mailcoach\Domain\Campaign\Actions;
 
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Spatie\Mailcoach\Domain\Campaign\Models\Campaign;
-use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
-use Spatie\Mailcoach\Mailcoach;
+use Spatie\Mailcoach\Domain\Shared\Mails\MailcoachMail;
+use Spatie\Mailcoach\Domain\Shared\Support\Config;
+use Swift_Message;
 
 class SendCampaignTestAction
 {
-    use UsesMailcoachModels;
-
-    public function __construct(
-        private SendMailAction $sendMailAction
-    ) {
-    }
-
     public function execute(Campaign $campaign, string $email): void
     {
-        $originalUpdatedAt = $campaign->updated_at;
-        $originalSubject = $campaign->subject;
-        $campaign->subject = "[Test] {$originalSubject}";
+        $html = $campaign->htmlWithInlinedCss();
 
-        /** @var \Spatie\Mailcoach\Domain\Campaign\Actions\PrepareSubjectAction $prepareSubjectAction */
-        $prepareSubjectAction = Mailcoach::getCampaignActionClass('prepare_subject', PrepareSubjectAction::class);
-        $prepareSubjectAction->execute($campaign);
+        $convertHtmlToTextAction = Config::getCampaignActionClass('convert_html_to_text', ConvertHtmlToTextAction::class);
 
-        /** @var \Spatie\Mailcoach\Domain\Campaign\Actions\PrepareEmailHtmlAction $prepareEmailHtmlAction */
-        $prepareEmailHtmlAction = Mailcoach::getCampaignActionClass('prepare_email_html', PrepareEmailHtmlAction::class);
-        $prepareEmailHtmlAction->execute($campaign);
+        $text = $convertHtmlToTextAction->execute($html);
 
-        if (! $subscriber = self::getSubscriberClass()::where('email', $email)->where('email_list_id', $campaign->email_list_id)->first()) {
-            $subscriber = self::getSubscriberClass()::make([
-                'uuid' => Str::uuid()->toString(),
-                'email_list_id' => $campaign->email_list_id,
-                'email' => $email,
-            ]);
-        }
+        $campaignMailable = resolve(MailcoachMail::class)
+            ->setSendable($campaign)
+            ->setHtmlContent($html)
+            ->setTextContent($text)
+            ->subject("[Test] {$campaign->subject}")
+            ->withSwiftMessage(function (Swift_Message $message) {
+                $message->getHeaders()->addTextHeader('X-MAILCOACH', 'true');
+                $message->getHeaders()->addTextHeader('X-Entity-Ref-ID', Str::uuid()->toString());
+            });
 
-        $send = self::getSendClass()::make([
-            'uuid' => Str::uuid()->toString(),
-            'subscriber_id' => $subscriber->id,
-            'campaign_id' => $campaign->id,
-        ]);
-        $send->setRelation('subscriber', $subscriber);
-        $send->setRelation('campaign', $campaign);
+        $mailer = $campaign->emailList->campaign_mailer
+            ?? config('mailcoach.campaigns.mailer')
+            ?? config('mailcoach.mailer')
+            ?? config('mail.default');
 
-        try {
-            $this->sendMailAction->execute($send, isTest: true);
-        } finally {
-            $campaign->update([
-                'subject' => $originalSubject,
-                'updated_at' => $originalUpdatedAt,
-            ]);
-            $send->delete();
-        }
+        Mail::mailer($mailer)
+            ->to($email)
+            ->send($campaignMailable);
     }
 }

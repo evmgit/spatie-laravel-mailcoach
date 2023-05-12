@@ -1,0 +1,52 @@
+name: run-tests
+
+on: [push, pull_request]
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [8.0, 8.1]
+        laravel: [8.*]
+        dependency-version: [prefer-stable]
+        include:
+          - laravel: 8.*
+            testbench: 6.*
+
+    name: P${{ matrix.php }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, redis
+          tools: composer:v2
+          coverage: none
+
+      - name: Create database
+        run: |
+            sudo /etc/init.d/mysql start
+            mysql  -u root -proot -e 'CREATE DATABASE IF NOT EXISTS mailcoach_tests;'
+
+      - name: Install dependencies
+        run: |
+          composer update --prefer-dist --no-interaction --no-suggest
+
+      - name: Execute tests
+        run: composer test
+        env:
+          REDIS_PORT: ${{ job.services.redis.ports[6379] }}
+          DB_PASSWORD: root

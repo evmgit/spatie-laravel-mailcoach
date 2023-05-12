@@ -1,96 +1,79 @@
 .alert {
-    @apply relative;
-    @apply px-7;
-    @apply py-5;
-    @apply rounded-md;
-    @apply bg-gradient-to-r;
-    @apply bg-gray-50;
-    @apply text-gray-800;
-
-    @apply before:content-[''];
-    @apply before:absolute;
-    @apply before:w-[6px];
-    @apply before:h-full;
-    @apply before:top-0;
-    @apply before:left-0;
-    @apply before:bg-gradient-to-b;
-    @apply before:rounded-l;
+    @apply px-6;
+    @apply py-4;
+    @apply border-l-4;
+    @apply rounded;
 }
 
-.alert.alert-flash {
-    @apply bg-gray-900;
-    @apply bg-gradient-to-r;
-    @apply text-white;
+.alert a {
+    @apply underline;
+}
+
+.alert-flash {
+    @apply cursor-pointer;
+    @apply absolute;
+    @apply right-0;
+    @apply top-6;
+    @apply lg:-right-4;
+    @apply grid;
+    @apply justify-start;
+    @apply bg-white;
+    @apply shadow-2xl;
+    @apply max-w-4xl;
+    @apply opacity-0;
+    @apply translate-x-full;
+    transition: opacity ease 0.8s, transform ease 0.6s;
+    z-index: 100000;
+}
+
+.alert-flash-visible {
+    @apply translate-x-0;
+    @apply opacity-100;
+    @apply duration-300;
 }
 
 .alert-success {
-    @apply from-green-50/60;
-    @apply to-green-50/40;
-    @apply before:from-green-400;
-    @apply before:to-green-400/50;
+    @apply bg-green-100;
+    @apply text-green-800;
+    @apply border-green-300;
 }
 
-.alert-success.alert-flash {
-    @apply from-green-500/10;
+.alert-success a {
+    text-decoration-color: var(--green-700);
 }
 
 .alert-info {
-    @apply from-purple-50/60;
-    @apply to-purple-50/40;
-    @apply before:from-purple-400;
-    @apply before:to-purple-400/50;
+    @apply bg-gray-100;
+    @apply border-gray-300;
+}
+
+.alert-info a {
+    text-decoration-color: var(--gray-700);
 }
 
 .alert-warning {
-    @apply from-orange-50/60;
-    @apply to-orange-50/40;
-    @apply before:from-orange-400;
-    @apply before:to-orange-400/50;
+    @apply bg-orange-100;
+    @apply text-orange-800;
+    @apply border-orange-300;
+}
+
+.alert-warning a {
+    text-decoration-color: var(--orange-700);
 }
 
 .alert-danger,
 .alert-error {
-    @apply from-red-50/60;
-    @apply to-red-50/40;
-    @apply before:from-red-400;
-    @apply before:to-red-400/50;
+    @apply bg-red-100;
+    @apply text-red-800;
+    @apply border-red-300;
 }
 
-.alert-danger.alert-flash,
-.alert-error.alert-flash {
-    @apply from-red-500/10;
+.alert-danger a,
+.alert-error a {
+    text-decoration-color: var(--red-700);
 }
 
 .alert-empty {
     @apply py-8;
     @apply text-center;
-}
-
-.alert-countdown {
-    @apply absolute;
-    @apply pointer-events-none;
-    @apply left-0;
-    @apply bottom-0;
-    @apply h-full;
-    @apply left-[6px];
-    @apply right-0;
-    @apply transform;
-    @apply origin-bottom-right;
-    @apply bg-gradient-to-r;
-    @apply from-white/10;
-    @apply to-white/20;
-    animation: alert-countdown var(--alert-duration, 5s) linear forwards;
-}
-
-.alert-countdown--paused {
-    animation-play-state: paused;
-}
-
-@keyframes alert-countdown {
-    0% {
-        transform: scaleX(1);
-    }
-    100% {
-        transform: scaleX(0);
-    }
 }

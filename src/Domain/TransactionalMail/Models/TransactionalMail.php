@@ -2,177 +2,97 @@
 
 namespace Spatie\Mailcoach\Domain\TransactionalMail\Models;
 
-use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Mail\Mailable;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Mail;
 use Spatie\Mailcoach\Database\Factories\TransactionalMailFactory;
-use Spatie\Mailcoach\Domain\Campaign\Models\Concerns\HasHtmlContent;
-use Spatie\Mailcoach\Domain\Shared\Models\HasUuid;
 use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
-use Spatie\Mailcoach\Domain\TransactionalMail\Actions\RenderTemplateAction;
-use Spatie\Mailcoach\Domain\TransactionalMail\Exceptions\InvalidTemplate;
-use Spatie\Mailcoach\Domain\TransactionalMail\Mails\Concerns\UsesMailcoachTemplate;
-use Spatie\Mailcoach\Domain\TransactionalMail\Support\Replacers\TransactionalMailReplacer;
-use Spatie\Mailcoach\Mailcoach;
+use Spatie\Mailcoach\Domain\TransactionalMail\Mails\ResendTransactionalMail;
 
-class TransactionalMail extends Model implements HasHtmlContent
+class TransactionalMail extends Model
 {
-    public $table = 'mailcoach_transactional_mails';
-
-    use HasUuid;
     use HasFactory;
     use UsesMailcoachModels;
+
+    public $table = 'mailcoach_transactional_mails';
 
     public $guarded = [];
 
     public $casts = [
-        'store_mail' => 'boolean',
-        'from' => 'string',
+        'from' => 'array',
         'to' => 'array',
         'cc' => 'array',
         'bcc' => 'array',
-        'replacers' => 'array',
+        'track_opens' => 'boolean',
+        'track_clicks' => 'boolean',
     ];
 
-    public function template(): BelongsTo
+    public function send(): HasOne
     {
-        return $this->belongsTo(self::getTemplateClass());
+        return $this->hasOne($this->getSendClass(), 'transactional_mail_id');
     }
 
-    public function getTemplateFieldValues(): array
+    public function opens(): HasManyThrough
     {
-        $structuredHtml = json_decode($this->getStructuredHtml(), true) ?? [];
-
-        return $structuredHtml['templateValues'] ?? [];
+        return $this
+            ->hasManyThrough(
+                TransactionalMailOpen::class,
+                $this->getSendClass(),
+                'transactional_mail_id'
+            )
+            ->orderBy('created_at');
     }
 
-    public function setTemplateFieldValues(array $fieldValues = []): self
+    public function clicks(): HasManyThrough
     {
-        $structuredHtml = json_decode($this->getStructuredHtml(), true) ?? [];
+        return $this
+            ->hasManyThrough(
+                TransactionalMailClick::class,
+                $this->getSendClass(),
+                'transactional_mail_id'
+            )
+            ->orderBy('created_at');
+    }
 
-        $structuredHtml['templateValues'] = $fieldValues;
+    public function clicksPerUrl(): Collection
+    {
+        return $this->clicks
+            ->groupBy('url')
+            ->map(function ($group, $url) {
+                return [
+                    'url' => $url,
+                    'count' => $group->count(),
+                    'first_clicked_at' => $group->first()->created_at,
+                ];
+            })
+            ->sortByDesc('count')
+            ->values();
+    }
 
-        $this->structured_html = json_encode($structuredHtml);
+    public function resend(): self
+    {
+        Mail::send(new ResendTransactionalMail($this));
 
         return $this;
     }
 
-    public function isValid(): bool
-    {
-        try {
-            $this->validate();
-        } catch (Exception) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public function validate(): void
-    {
-        $mailable = $this->getMailable();
-
-        $mailable->render();
-    }
-
-    public function getMailable(): Mailable
-    {
-        $mailableClass = $this->test_using_mailable;
-
-        if (! class_exists($mailableClass)) {
-            throw InvalidTemplate::mailableClassNotFound($this);
-        }
-
-        $traits = class_uses_recursive($mailableClass);
-
-        if (! in_array(UsesMailcoachTemplate::class, $traits)) {
-            throw InvalidTemplate::mailableClassNotValid($this);
-        }
-
-        return $mailableClass::testInstance();
-    }
-
-    public function canBeTested(): bool
-    {
-        return ! is_null($this->test_using_mailable);
-    }
-
-    public function replacers(): Collection
-    {
-        return collect($this->replacers ?? [])
-            ->map(function (string $replacerName): TransactionalMailReplacer {
-                $replacerClass = config("mailcoach.transactional.replacers.{$replacerName}");
-
-                if (is_null($replacerClass)) {
-                    throw InvalidTemplate::replacerNotFound($this, $replacerName);
-                }
-
-                if (! is_a($replacerClass, TransactionalMailReplacer::class, true)) {
-                    throw InvalidTemplate::invalidReplacer($this, $replacerName, $replacerClass);
-                }
-
-                return resolve($replacerClass);
-            });
-    }
-
-    public function render(
-        Mailable $mailable,
-        array $replacements = [],
-    ): string {
-        /** @var RenderTemplateAction $action */
-        $action = Mailcoach::getTransactionalActionClass('render_template', RenderTemplateAction::class);
-
-        return $action->execute($this, $mailable, $replacements);
-    }
-
-    public function getHtml(): ?string
-    {
-        return $this->body;
-    }
-
-    public function setHtml(string $html): void
-    {
-        $this->body = $html;
-    }
-
-    public function getStructuredHtml(): ?string
-    {
-        return $this->structured_html;
-    }
-
-    public function hasTemplates(): bool
-    {
-        return true;
-    }
-
     public function toString(): string
     {
-        if (is_string($this->to)) {
-            return $this->to;
-        }
-
-        return implode(',', $this->to ?? []);
+        return collect($this->to)
+            ->map(function ($person) {
+                return $person['email'];
+            })
+            ->implode(', ');
     }
 
-    public function ccString(): string
+    public function resolveRouteBinding($value, $field = null)
     {
-        if (is_string($this->cc)) {
-            return $this->cc;
-        }
+        $field ??= $this->getRouteKeyName();
 
-        return implode(',', $this->cc ?? []);
-    }
-
-    public function bccString(): string
-    {
-        if (is_string($this->bcc)) {
-            return $this->bcc;
-        }
-
-        return implode(',', $this->bcc ?? []);
+        return $this->getTransactionalMailClass()::where($field, $value)->firstOrFail();
     }
 
     protected static function newFactory(): TransactionalMailFactory

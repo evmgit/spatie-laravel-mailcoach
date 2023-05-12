@@ -1,26 +1,15 @@
-<form
-    class="form-grid"
-    wire:submit.prevent="saveTemplate"
-    @keydown.prevent.window.cmd.s="$wire.call('saveTemplate')"
-    @keydown.prevent.window.ctrl.s="$wire.call('saveTemplate')"
-    method="POST"
->
-    <x-mailcoach::text-field
-        :label="__mc('Name')"
-        name="name"
-        wire:model.lazy="name"
-        :placeholder="__mc('Transactional email')"
-        required
-    />
+<form class="form-grid" action="{{ route('mailcoach.transactionalMails.templates.store') }}" method="POST">
+    @csrf
+
+    <x-mailcoach::text-field :label="__('Name')" name="name" :placeholder="__('Transactional mail template')" required />
 
     <?php
-        $editor = config('mailcoach.template_editor', \Spatie\Mailcoach\Domain\Shared\Support\Editor\TextEditor::class);
+        $editor = config('mailcoach.transactional.editor', \Spatie\Mailcoach\Domain\Shared\Support\Editor\TextEditor::class);
         $editorName = (new ReflectionClass($editor))->getShortName();
     ?>
     <x-mailcoach::select-field
-        :label="__mc('Type')"
+        :label="__('Type')"
         name="type"
-        wire:model.lazy="type"
         :options="[
             'html' => 'HTML (' . $editorName . ')',
             'markdown' => 'Markdown',
@@ -29,8 +18,8 @@
         ]"
     />
 
-    <x-mailcoach::form-buttons>
-        <x-mailcoach::button :label="__mc('Create email')" />
-        <x-mailcoach::button-cancel x-on:click="$store.modals.close('create-transactional-template')" />
-    </x-mailcoach::form-buttons>
+    <div class="form-buttons">
+        <x-mailcoach::button :label="__('Create template')" />
+        <x-mailcoach::button-cancel />
+    </div>
 </form>

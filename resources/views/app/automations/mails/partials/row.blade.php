@@ -1,5 +1,4 @@
-@php($mail ??= $row)
-<tr>
+<tr class="tr-h-double">
     <td class="markup-links">
         <a href="{{ route('mailcoach.automations.mails.summary', $mail) }}">
             {{ $mail->name }}
@@ -31,17 +30,21 @@
          <x-mailcoach::dropdown direction="left">
             <ul>
                 <li>
-                    <button wire:click.prevent="duplicateAutomationMail({{ $mail->id }})">
-                        <x-mailcoach::icon-label icon="fas fa-random" :text="__mc('Duplicate')" />
-                    </button>
+                    <x-mailcoach::form-button
+                        :action="route('mailcoach.automations.mails.duplicate', $mail)"
+                    >
+                        <x-mailcoach::icon-label icon="fas fa-random" :text="__('Duplicate')" />
+                    </x-mailcoach::form-button>
                 </li>
                 <li>
-                    <x-mailcoach::confirm-button
-                        :confirm-text="__mc('Are you sure you want to delete email :name?', ['name' => $mail->name])"
-                        onConfirm="() => $wire.deleteAutomationMail({{ $mail->id }})"
+                    <x-mailcoach::form-button
+                        :action="route('mailcoach.automations.mails.delete', $mail)"
+                        method="DELETE"
+                        data-confirm="true"
+                        :data-confirm-text="__('Are you sure you want to delete email :name?', ['name' => $mail->name])"
                     >
-                        <x-mailcoach::icon-label icon="far fa-trash-alt" :text="__mc('Delete')" :caution="true" />
-                    </x-mailcoach::confirm-button>
+                        <x-mailcoach::icon-label icon="far fa-trash-alt" :text="__('Delete')" :caution="true" />
+                    </x-mailcoach::form-button>
                 </li>
             </ul>
         </x-mailcoach::dropdown>

@@ -20,18 +20,17 @@ class ConfirmSubscriberController
         Subscriber $subscriber,
         ConfirmSubscriberAction $confirmSubscriberAction
     ) {
-        $this->authorize('update', $subscriber->emailList);
+        $this->authorize("update", $subscriber->emailList);
 
         $this->ensureUnconfirmedSubscriber($subscriber);
 
-        $confirmSubscriberAction->execute($subscriber);
-
+        $confirmSubscriberAction->doNotSendWelcomeMail()->execute($subscriber);
         $this->respondOk();
     }
 
     protected function ensureUnconfirmedSubscriber(Subscriber $subscriber): void
     {
-        if ($subscriber->status !== SubscriptionStatus::Unconfirmed) {
+        if ($subscriber->status !== SubscriptionStatus::UNCONFIRMED) {
             abort(Response::HTTP_UNPROCESSABLE_ENTITY, 'The subscriber was already confirmed');
         }
     }

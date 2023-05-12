@@ -12,7 +12,7 @@ class AutomationMailNameAutomationMailReplacer implements AutomationMailReplacer
     public function helpText(): array
     {
         return [
-            'automation_mail.name' => __mc('The name of this automation mail'),
+            'automation_mail.name' => __('The name of this automation mail'),
         ];
     }
 

@@ -2,17 +2,13 @@
 
 namespace Spatie\Mailcoach\Domain\Automation\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
-use Spatie\Mailcoach\Domain\Shared\Models\HasUuid;
 use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
 
 class ActionSubscriber extends Pivot
 {
-    use HasUuid;
     use UsesMailcoachModels;
-    use HasFactory;
 
     public $table = 'mailcoach_automation_action_subscriber';
 

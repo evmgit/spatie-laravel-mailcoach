@@ -1,77 +1,48 @@
-<form
-    class="card-grid"
-    method="POST"
-    wire:submit.prevent="save"
-    @keydown.prevent.window.cmd.s="$wire.call('save')"
-    @keydown.prevent.window.ctrl.s="$wire.call('save')"
->
-    <x-mailcoach::fieldset card :legend="__mc('Settings')">
-        <x-mailcoach::text-field :label="__mc('Name')" name="emailList.name" wire:model="emailList.name" required/>
+<x-mailcoach::layout-list :title="__('Settings')" :emailList="$emailList">
+    <form class="form-grid" method="POST">
+        @csrf
+        @method('PUT')
 
-        <div class="form-field max-w-full">
-            <label class="label" for="emailList.campaigns_feed_enabled">{{ __mc('Publication') }}</label>
-            <x-mailcoach::checkbox-field :label="__mc('Make RSS feed publicly available')" name="emailList.campaigns_feed_enabled"
-                                         wire:model="emailList.campaigns_feed_enabled"/>
-            @if ($emailList->campaigns_feed_enabled)
-                <x-mailcoach::info class="mt-2" full>
-                    {{ __mc('Your public feed will be available at') }}
-                    <a class="text-sm link" target="_blank" href="{{$emailList->feedUrl()}}">{{$emailList->feedUrl()}}</a>
-                </x-mailcoach::info>
-            @endif
-        </div>
-    </x-mailcoach::fieldset>
+        <x-mailcoach::fieldset :legend="__('Sender')">
+            <x-mailcoach::text-field :label="__('Name')" name="name" :value="$emailList->name" required/>
 
-    <x-mailcoach::fieldset card :legend="__mc('Sender')">
-
-        <div class="grid grid-cols-2 gap-6">
-            <x-mailcoach::text-field :label="__mc('From email')" name="emailList.default_from_email" wire:model.lazy="emailList.default_from_email"
+            <x-mailcoach::text-field :label="__('From email')" name="default_from_email" :value="$emailList->default_from_email"
                         type="email" required/>
 
-            <x-mailcoach::text-field :label="__mc('From name')" name="emailList.default_from_name" wire:model.lazy="emailList.default_from_name"/>
+            <x-mailcoach::text-field :label="__('From name')" name="default_from_name" :value="$emailList->default_from_name"/>
 
-            <x-mailcoach::text-field :label="__mc('Reply-to email')" name="emailList.default_reply_to_email" wire:model.lazy="emailList.default_reply_to_email"
+            <x-mailcoach::text-field :label="__('Reply-to email')" name="default_reply_to_email" :value="$emailList->default_reply_to_email"
                         type="email"/>
 
-            <x-mailcoach::text-field :label="__mc('Reply-to name')" name="emailList.default_reply_to_name" wire:model.lazy="emailList.default_reply_to_name"/>
+            <x-mailcoach::text-field :label="__('Reply-to name')" name="default_reply_to_name" :value="$emailList->default_reply_to_name"/>
+        </x-mailcoach::fieldset>
+
+        <x-mailcoach::fieldset :legend="__('Publication')">
+            <div class="form-field max-w-full">
+                <x-mailcoach::checkbox-field :label="__('Make feed publicly available')" name="campaigns_feed_enabled"
+                                :checked="$emailList->campaigns_feed_enabled"/>
+                <a class="text-sm link" href="{{$emailList->feedUrl()}}">{{$emailList->feedUrl()}}</a>
+            </div>
+        </x-mailcoach::fieldset>
+
+        <x-mailcoach::fieldset :legend="__('Notifications')">
+            <div class="checkbox-group">
+                <x-mailcoach::checkbox-field :label="__('Confirmation when campaign has been sent to this list')"
+                                name="report_campaign_sent" :checked="$emailList->report_campaign_sent"/>
+                <x-mailcoach::checkbox-field
+                    :label="__('Summary of opens, clicks & bounces a day after a campaign has been sent to this list')"
+                    name="report_campaign_summary" :checked="$emailList->report_campaign_summary"/>
+                <x-mailcoach::checkbox-field :label="__('Weekly summary on the subscriber growth of this list')"
+                                name="report_email_list_summary" :checked="$emailList->report_email_list_summary"/>
+            </div>
+
+            <x-mailcoach::text-field :placeholder="__('Email(s) comma separated')" :label="__('Email')" name="report_recipients"
+                        :value="$emailList->report_recipients"/>
+        </x-mailcoach::fieldset>
+
+        <div class="form-buttons">
+            <x-mailcoach::button :label="__('Save')"/>
         </div>
-    </x-mailcoach::fieldset>
-
-    <x-mailcoach::fieldset card :legend="__mc('Email Notifications')">
-        <div class="checkbox-group">
-            <x-mailcoach::checkbox-field :label="__mc('Confirmation when a campaign has finished sending to this list')"
-                            name="emailList.report_campaign_sent" wire:model="emailList.report_campaign_sent"/>
-            <x-mailcoach::checkbox-field
-                :label="__mc('Summary of opens, clicks & bounces a day after a campaign has been sent to this list')"
-                name="emailList.report_campaign_summary" wire:model="emailList.report_campaign_summary"/>
-            <x-mailcoach::checkbox-field :label="__mc('Weekly summary on the subscriber growth of this list')"
-                            name="emailList.report_email_list_summary" wire:model="emailList.report_email_list_summary"/>
-        </div>
-
-        @if ($emailList->report_campaign_sent || $emailList->report_campaign_summary || $emailList->report_email_list_summary)
-            <x-mailcoach::help>
-                {{ __mc('Which email address(es) should the notifications be sent to?') }}
-            </x-mailcoach::help>
-            <x-mailcoach::text-field :placeholder="__mc('Email(s) comma separated')" :label="__mc('Email')" name="emailList.report_recipients"
-                        wire:model.lazy="emailList.report_recipients"/>
-        @endif
-    </x-mailcoach::fieldset>
-
-    <x-mailcoach::fieldset card :legend="__mc('Usage in Mailcoach API')">
-        <div>
-            <x-mailcoach::help>
-                {!! __mc('Whenever you need to specify a <code>:resourceName</code> in the Mailcoach API and want to use this :resource, you\'ll need to pass this value', [
-                'resourceName' => 'emailList uuid',
-                'resource' => 'email list',
-            ]) !!}
-                <p class="mt-4">
-                    <x-mailcoach::code-copy class="flex items-center justify-between max-w-md" :code="$emailList->uuid"></x-mailcoach::code-copy>
-                </p>
-            </x-mailcoach::help>
-        </div>
-    </x-mailcoach::fieldset>
-
-    <x-mailcoach::card buttons>
-        <x-mailcoach::button :label="__mc('Save')"/>
-    </x-mailcoach::card>
-</form>
+    </form>
+</x-mailcoach::layout-list>
 

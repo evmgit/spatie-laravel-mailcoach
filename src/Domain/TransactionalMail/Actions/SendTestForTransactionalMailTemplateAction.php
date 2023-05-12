@@ -3,11 +3,11 @@
 namespace Spatie\Mailcoach\Domain\TransactionalMail\Actions;
 
 use Illuminate\Support\Facades\Mail;
-use Spatie\Mailcoach\Domain\TransactionalMail\Models\TransactionalMail;
+use Spatie\Mailcoach\Domain\TransactionalMail\Models\TransactionalMailTemplate;
 
 class SendTestForTransactionalMailTemplateAction
 {
-    public function execute(array $recipients, TransactionalMail $template): void
+    public function execute(array $recipients, TransactionalMailTemplate $template): void
     {
         $mailable = $template->getMailable();
 

@@ -2,43 +2,51 @@
 
 namespace Spatie\Mailcoach\Domain\TransactionalMail\Support;
 
-use Symfony\Component\Mime\Email;
+use Swift_Message;
 
 class TransactionalMailMessageConfig
 {
-    public const HEADER_NAME_TRANSACTIONAL = 'mailcoach-transactional-mail';
-
     public const HEADER_NAME_OPENS = 'mailcoach-transactional-mail-config-track-opens';
-
     public const HEADER_NAME_CLICKS = 'mailcoach-transactional-mail-config-track-clicks';
-
     public const HEADER_NAME_STORE = 'mailcoach-transactional-mail-config-store';
-
     public const HEADER_NAME_MAILABLE_CLASS = 'mailcoach-transactional-mail-config-mailable-class';
 
-    public static function createForMessage(Email $message): self
+    public static function createForMessage(Swift_Message $message): self
     {
         return new self($message);
     }
 
     protected function __construct(
-        protected Email $message
+        protected Swift_Message $message
     ) {
     }
 
-    public function isTransactionalMail(): bool
+    public function trackOpens(): bool
     {
-        return $this->message->getHeaders()->has(static::HEADER_NAME_TRANSACTIONAL);
+        return $this->message->getHeaders()->has(static::HEADER_NAME_OPENS);
+    }
+
+    public function trackClicks(): bool
+    {
+        return $this->message->getHeaders()->has(static::HEADER_NAME_CLICKS);
     }
 
     public function shouldStore(): bool
     {
+        if ($this->trackOpens()) {
+            return true;
+        }
+
+        if ($this->trackClicks()) {
+            return true;
+        }
+
         return $this->message->getHeaders()->has(static::HEADER_NAME_STORE);
     }
 
     public function getMailableClass(): string
     {
-        return $this->message->getHeaders()->get(static::HEADER_NAME_MAILABLE_CLASS)->getBodyAsString();
+        return $this->message->getHeaders()->get(static::HEADER_NAME_MAILABLE_CLASS)->getFieldBody();
     }
 
     public static function getHeaderNames(): array

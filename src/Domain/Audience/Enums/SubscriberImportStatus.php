@@ -2,11 +2,10 @@
 
 namespace Spatie\Mailcoach\Domain\Audience\Enums;
 
-enum SubscriberImportStatus: string
+class SubscriberImportStatus
 {
-    case Draft = 'draft';
-    case Pending = 'pending';
-    case Importing = 'importing';
-    case Completed = 'completed';
-    case Failed = 'failed';
+    public const DRAFT = 'draft';
+    public const PENDING = 'pending';
+    public const IMPORTING = 'importing';
+    public const COMPLETED = 'completed';
 }

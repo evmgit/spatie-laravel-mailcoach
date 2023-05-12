@@ -1,23 +1,22 @@
-<x-mailcoach::fieldset card class="md:p-6" :focus="$editing">
+<x-mailcoach::fieldset :focus="$editing">
     <x-slot name="legend">
         <header class="flex items-center space-x-2">
-            <span class="w-6 h-6 rounded-full inline-flex items-center justify-center text-xs leading-none font-semibold counter-automation">
+            <span class="w-6 h-6 rounded-full inline-flex items-center justify-center text-xs leading-none font-semibold bg-yellow-200 text-yellow-700">
                 {{ $index + 1 }}
             </span>
             <span class="font-normal whitespace-nowrap">
                 Check for
-                <span class="form-legend-accent">
+                <span class="legend-accent">
                     {{ \Carbon\CarbonInterval::createFromDateString("{$length} {$unit}") }}
                 </span>
             </span>
         </header>
     </x-slot>
 
-    <div class="flex items-center absolute top-4 right-6 gap-4 z-10">
+    <div class="flex items-center absolute top-4 right-6 space-x-3 z-20">
         @if ($editing && count($editingActions) === 0)
-            <button type="button" wire:click="save" class="hover:text-green-500">
-                <i class="icon-button fas fa-check"></i>
-                Save
+            <button type="button" wire:click="save">
+                <i class="icon-button hover:text-green-500 fas fa-check"></i>
             </button>
         @elseif ($editable && !$editing)
             <button type="button" wire:click="edit">
@@ -25,8 +24,8 @@
             </button>
         @endif
         @if ($deletable && count($editingActions) === 0)
-            <button type="button" onclick="confirm('{{ __mc('Are you sure you want to delete this action?') }}') || event.stopImmediatePropagation()" wire:click="delete">
-                <i class="icon-button link-danger far fa-trash-alt"></i>
+            <button type="button" onclick="confirm('{{ __('Are you sure you want to delete this action?') }}') || event.stopImmediatePropagation()" wire:click="delete">
+                <i class="icon-button hover:text-red-500 far fa-trash-alt"></i>
             </button>
         @endif
     </div>
@@ -37,7 +36,7 @@
                     <div class="form-actions">
                         <div class="col-span-8 sm:col-span-4">
                             <x-mailcoach::text-field
-                                :label="__mc('Duration')"
+                                :label="__('Duration')"
                                 :required="true"
                                 name="length"
                                 wire:model="length"
@@ -46,25 +45,25 @@
                         </div>
                         <div class="col-span-4 sm:col-span-4">
                             <x-mailcoach::select-field
-                                :label="__mc('Unit')"
+                                :label="__('Unit')"
                                 :required="true"
                                 name="unit"
                                 wire:model="unit"
                                 :options="
-                                    collect($units)
-                                        ->mapWithKeys(fn ($label, $value) => [$value => \Illuminate\Support\Str::plural($label, (int) $length)])
-                                        ->toArray()
-                                "
+                        collect($units)
+                            ->mapWithKeys(fn ($label, $value) => [$value => \Illuminate\Support\Str::plural($label, (int) $length)])
+                            ->toArray()
+                    "
                             />
                         </div>
 
                         <div class="col-span-12 sm:col-span-4 sm:col-start-1">
                             <x-mailcoach::select-field
-                                :label="__mc('Condition')"
+                                :label="__('Condition')"
                                 :required="true"
                                 name="condition"
                                 wire:model="condition"
-                                :placeholder="__mc('Select a condition')"
+                                :placeholder="__('Select a condition')"
                                 :options="$conditionOptions"
                             />
                         </div>
@@ -72,25 +71,24 @@
                         @switch ($condition)
                             @case (\Spatie\Mailcoach\Domain\Automation\Support\Conditions\HasTagCondition::class)
                                 <div class="col-span-12 sm:col-span-4">
-                                    <x-mailcoach::tags-field
-                                        :label="__mc('Tag')"
+                                    <x-mailcoach::text-field
+                                        :label="__('Tag')"
                                         name="conditionData.tag"
                                         wire:model="conditionData.tag"
-                                        :multiple="false"
-                                        :clearable="false"
-                                        :tags="$automation->emailList?->tags()->pluck('name')->toArray() ?? []"
                                     />
                                 </div>
                             @break
                             @case (\Spatie\Mailcoach\Domain\Automation\Support\Conditions\HasOpenedAutomationMail::class)
                                 <div class="col-span-12 sm:col-span-4">
                                     <x-mailcoach::select-field
-                                        :label="__mc('Automation mail')"
+                                        :label="__('Automation mail')"
                                         name="conditionData.automation_mail_id"
                                         wire:model="conditionData.automation_mail_id"
-                                        :placeholder="__mc('Select a mail')"
+                                        :placeholder="__('Select a mail')"
                                         :options="
-                                            \Spatie\Mailcoach\Mailcoach::getAutomationMailClass()::query()->orderBy('name')->pluck('name', 'id')
+                                            \Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels::getAutomationMailClass()::query()
+                                                ->where('track_opens', true)
+                                                ->pluck('name', 'id')
                                         "
                                     />
                                 </div>
@@ -98,14 +96,14 @@
                             @case (\Spatie\Mailcoach\Domain\Automation\Support\Conditions\HasClickedAutomationMail::class)
                                 <div class="col-span-12 sm:col-span-4">
                                     <x-mailcoach::select-field
-                                        :label="__mc('Automation mail')"
+                                        :label="__('Automation mail')"
                                         name="conditionData.automation_mail_id"
                                         wire:model="conditionData.automation_mail_id"
-                                        :placeholder="__mc('Select a mail')"
+                                        :placeholder="__('Select a mail')"
                                         :required="true"
                                         :options="
-                                            \Spatie\Mailcoach\Mailcoach::getAutomationMailClass()::query()
-                                                ->orderBy('name')
+                                            \Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels::getAutomationMailClass()::query()
+                                                ->where('track_clicks', true)
                                                 ->pluck('name', 'id')
                                         "
                                     />
@@ -114,14 +112,14 @@
                                 @if ($conditionData['automation_mail_id'])
                                     <div class="col-span-12 sm:col-span-4">
                                         <x-mailcoach::select-field
-                                            :label="__mc('Link')"
+                                            :label="__('Link')"
                                             name="conditionData.automation_mail_link_url"
                                             wire:model="conditionData.automation_mail_link_url"
-                                            :placeholder="__mc('Select a link')"
+                                            :placeholder="__('Select a link')"
                                             :required="false"
                                             :options="
-                                                ['' => __mc('Any link')] +
-                                                \Spatie\Mailcoach\Mailcoach::getAutomationMailClass()::find($conditionData['automation_mail_id'])
+                                                ['' => __('Any link')] +
+                                                \Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels::getAutomationMailClass()::find($conditionData['automation_mail_id'])
                                                     ->htmlLinks()
                                                     ->mapWithKeys(fn ($url) => [$url => $url])
                                                     ->toArray()
@@ -135,39 +133,39 @@
                 </div>
 
                 <div class="grid gap-6 w-full">
-                    <section class="border-t border-r border-b border-indigo-700/10 rounded bg-indigo-300/10 before:content-[''] before:absolute before:w-2 before:-top-px before:-bottom-px before:left-0 before:bg-green-600 before:rounded-l ">
-                        <div x-data="{ collapsed: false }" :class="{ 'pb-6': !collapsed }" class="grid gap-4 px-6">
+                    <section class="border-l-4 border-green-400 bg-white bg-opacity-50">
+                        <div x-data="{ collapsed: false }" :class="{ 'pb-8': !collapsed }" class="grid gap-4 px-12 border-green-500 border-opacity-20 border-r border-t border-b rounded-r">
                             <div class="flex items-center">
-                                <h2 :class="{ 'rounded-br': !collapsed }" class="justify-self-start -ml-4 -my-px h-8 pl-2 pr-4 inline-flex items-center bg-green-600 text-white space-x-2">
+                                <h2 class="justify-self-start -ml-12 -mt-px -mb-px h-8 px-2 inline-flex items-center bg-green-400 text-white rounded-br space-x-2">
                                     <i class="far fa-thumbs-up"></i>
                                     <span class="markup-h4">@lang('If')</span>
                                 </h2>
-                                <span x-show="collapsed" class="text-gray-600 text-sm ml-4">{{ count($yesActions) }} {{ __mc_choice('action|actions', count($yesActions)) }}</span>
-                                <button class="ml-auto -mr-3 text-sm" type="button">
+                                <span x-show="collapsed" class="text-gray-500 text-sm ml-4">{{ count($yesActions) }} {{ trans_choice('action|actions', count($yesActions)) }}</span>
+                                <button class="ml-auto -mr-8" type="button">
                                     <i x-show="!collapsed" @click="collapsed = true" class="fas fa-chevron-up"></i>
                                     <i x-show="collapsed" @click="collapsed = false" class="fas fa-chevron-down"></i>
                                 </button>
                             </div>
                             <div x-show="!collapsed">
-                                <livewire:mailcoach::automation-builder name="{{ $uuid }}-yes-actions" :automation="$automation" :actions="$yesActions" key="{{ $uuid }}-yes-actions" />
+                                <livewire:automation-builder name="{{ $uuid }}-yes-actions" :automation="$automation" :actions="$yesActions" key="{{ $uuid }}-yes-actions" />
                             </div>
                         </div>
                     </section>
-                    <section class="border-t border-r border-b border-indigo-700/10 rounded bg-indigo-300/10 before:content-[''] before:absolute before:w-2 before:-top-px before:-bottom-px before:left-0 before:bg-red-600 before:rounded-l ">
-                        <div x-data="{ collapsed: false }" :class="{ 'pb-6': !collapsed }" class="grid gap-4 px-6">
+                    <section class="border-l-4 border-red-400 bg-white bg-opacity-50">
+                        <div x-data="{ collapsed: false }" :class="{ 'pb-8': !collapsed }" class="grid gap-4 px-12 border-red-500 border-opacity-20 border-r border-t border-b rounded-r">
                             <div class="flex items-center">
-                                <h2 :class="{ 'rounded-br': !collapsed }" class="justify-self-start -ml-4 -my-px h-8 pl-2 pr-4 inline-flex items-center bg-red-600 text-white space-x-2">
+                                <h2 class="justify-self-start -ml-12 -mt-px -mb-px h-8 px-2 inline-flex items-center bg-red-400 text-white rounded-br space-x-2">
                                     <i class="far fa-thumbs-down"></i>
                                     <span class="markup-h4">@lang('Else')</span>
                                 </h2>
-                                <span x-show="collapsed" class="text-gray-600 text-sm ml-4">{{ count($noActions) }} {{ __mc_choice('action|actions', count($noActions)) }}</span>
-                                <button class="ml-auto -mr-3 text-sm" type="button">
+                                <span x-show="collapsed" class="text-gray-500 text-sm ml-4">{{ count($noActions) }} {{ trans_choice('action|actions', count($noActions)) }}</span>
+                                <button class="ml-auto -mr-8" type="button">
                                     <i x-show="!collapsed" @click="collapsed = true" class="fas fa-chevron-up"></i>
                                     <i x-show="collapsed" @click="collapsed = false" class="fas fa-chevron-down"></i>
                                 </button>
                             </div>
                             <div x-show="!collapsed">
-                                <livewire:mailcoach::automation-builder name="{{ $uuid }}-no-actions" :automation="$automation" :actions="$noActions" key="{{ $uuid}}-no-actions" />
+                                <livewire:automation-builder name="{{ $uuid }}-no-actions" :automation="$automation" :actions="$noActions" key="{{ $uuid}}-no-actions" />
                             </div>
                         </div>
                     </section>
@@ -175,10 +173,10 @@
             @else
                 <div class="grid gap-6 flex-grow">
                     <div class="grid gap-6 w-full">
-                        <section class="border-t border-r border-b border-indigo-700/10 rounded bg-indigo-300/10 before:content-[''] before:absolute before:w-2 before:-top-px before:-bottom-px before:left-0 before:bg-green-600 before:rounded-l ">
-                            <div x-data="{ collapsed: false }" :class="{ 'pb-6': !collapsed }" class="grid gap-4 px-6">
+                        <section class="border-l-4 border-green-400 bg-white bg-opacity-50">
+                            <div x-data="{ collapsed: false }" :class="{ 'pb-8': !collapsed }" class="grid gap-4 px-12 border-green-500 border-opacity-20 border-r border-t border-b rounded-r">
                                 <div class="flex items-center">
-                                    <h2 :class="{ 'rounded-br': !collapsed }" class="justify-self-start -ml-4 -my-px h-8 pl-2 pr-4 inline-flex items-center bg-green-600 text-white space-x-2">
+                                    <h2 class="justify-self-start -ml-12 -mt-px -mb-px h-8 px-2 inline-flex items-center bg-green-400 text-white rounded-br space-x-2">
                                         <i class="far fa-thumbs-up"></i>
                                          @if ($condition)
                                             <span class="markup-h4 whitespace-nowrap overflow-ellipsis max-w-xs truncate">
@@ -187,15 +185,15 @@
                                             </span>
                                         @endif
                                     </h2>
-                                    <span x-show="collapsed" class="text-gray-600 text-sm ml-4">{{ count($yesActions) }} {{ __mc_choice('action|actions', count($yesActions)) }}</span>
-                                    <button class="ml-auto -mr-3 text-sm" type="button">
+                                    <span x-show="collapsed" class="text-gray-500 text-sm ml-4">{{ count($yesActions) }} {{ trans_choice('action|actions', count($yesActions)) }}</span>
+                                    <button class="ml-auto -mr-8" type="button">
                                         <i x-show="!collapsed" @click="collapsed = true" class="fas fa-chevron-up"></i>
                                         <i x-show="collapsed" @click="collapsed = false" class="fas fa-chevron-down"></i>
                                     </button>
                                 </div>
-                                <div class="grid gap-3" x-show="!collapsed">
+                                <div x-show="!collapsed">
                                     @foreach ($yesActions as $index => $action)
-                                        @livewire($action['class']::getComponent() ?: 'mailcoach::automation-action', array_merge([
+                                        @livewire($action['class']::getComponent() ?: 'automation-action', array_merge([
                                             'index' => $index,
                                             'uuid' => $action['uuid'],
                                             'action' => $action,
@@ -207,24 +205,24 @@
                                 </div>
                             </div>
                         </section>
-                        <section class="border-t border-r border-b border-indigo-700/10 rounded bg-indigo-300/10 before:content-[''] before:absolute before:w-2 before:-top-px before:-bottom-px before:left-0 before:bg-red-600 before:rounded-l ">
-                            <div x-data="{ collapsed: false }" :class="{ 'pb-6': !collapsed }" class="grid gap-4 px-6">
+                        <section class="border-l-4 border-red-400 bg-white bg-opacity-50">
+                            <div x-data="{ collapsed: false }" :class="{ 'pb-8': !collapsed }" class="grid gap-4 px-12 pb-8 border-red-500 border-opacity-20 border-r border-t border-b rounded-r">
                                 <div class="flex items-center">
-                                    <h2 :class="{ 'rounded-br': !collapsed }" class="justify-self-start -ml-4 -my-px h-8 pl-2 pr-4 inline-flex items-center bg-red-600 text-white space-x-2">
+                                    <h2 class="justify-self-start -ml-12 -mt-px -mb-px h-8 px-2 inline-flex items-center bg-red-400 text-white rounded-br space-x-2">
                                         <i class="far fa-thumbs-down"></i>
                                         <span class="markup-h4">
                                             <span class="font-normal">@lang('Else')</span>
                                         </span>
                                     </h2>
-                                    <span x-show="collapsed" class="text-gray-600 text-sm ml-4">{{ count($noActions) }} {{ __mc_choice('action|actions', count($noActions)) }}</span>
-                                    <button class="ml-auto -mr-3 text-sm" type="button">
+                                    <span x-show="collapsed" class="text-gray-500 text-sm ml-4">{{ count($noActions) }} {{ trans_choice('action|actions', count($noActions)) }}</span>
+                                    <button class="ml-auto -mr-8" type="button">
                                         <i x-show="!collapsed" @click="collapsed = true" class="fas fa-chevron-up"></i>
                                         <i x-show="collapsed" @click="collapsed = false" class="fas fa-chevron-down"></i>
                                     </button>
                                 </div>
-                                <div class="grid gap-3" x-show="!collapsed">
+                                <div x-show="!collapsed">
                                     @foreach ($noActions as $index => $action)
-                                        @livewire($action['class']::getComponent() ?: 'mailcoach::automation-action', array_merge([
+                                        @livewire($action['class']::getComponent() ?: 'automation-action', array_merge([
                                             'index' => $index,
                                             'uuid' => $action['uuid'],
                                             'action' => $action,

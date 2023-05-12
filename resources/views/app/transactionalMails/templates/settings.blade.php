@@ -1,73 +1,66 @@
-<form
-    class="card-grid"
-    method="POST"
-    wire:submit.prevent="save"
-    @keydown.prevent.window.cmd.s="$wire.call('save')"
-    @keydown.prevent.window.ctrl.s="$wire.call('save')"
-    x-data="{ type: @entangle('template.type') }"
-    x-cloak
->
-    <x-mailcoach::fieldset card :legend="__mc('General')">
-        <x-mailcoach::text-field :label="__mc('Name')" name="template.name" wire:model.lazy="template.name" required />
-        <x-mailcoach::info>
-            {{ __mc('This name is used by the application to retrieve this template. Do not change it without updating the code of your app.') }}
-        </x-mailcoach::info>
+<x-mailcoach::layout-transactional-template title="Settings" :template="$template">
+        <form
+            class="form-grid"
+            method="POST"
+        >
+            @csrf
+            @method('PUT')
 
-        <?php
-        $editor = config('mailcoach.content_editor', \Spatie\Mailcoach\Http\App\Livewire\TextAreaEditorComponent::class);
-        $editorName = (new ReflectionClass($editor))->getShortName();
-        ?>
-        <x-mailcoach::select-field
-            :label="__mc('Format')"
-            name="template.type"
-            wire:model="template.type"
-            :options="[
-                'html' => 'HTML (' . $editorName . ')',
-                'markdown' => 'Markdown',
-                'blade' => 'Blade',
-                'blade-markdown' => 'Blade with Markdown',
-            ]"
-        />
+            <x-mailcoach::fieldset :legend="__('General')">
 
-        <div x-show="type === 'blade'">
-            <x-mailcoach::warning>
-                <p class="text-sm mb-2">{{ __mc('Blade templates have the ability to run arbitrary PHP code. Only select Blade if you trust all users that have access to the Mailcoach UI.') }}</p>
-            </x-mailcoach::warning>
-        </div>
 
-        <div x-show="type === 'blade-markdown'">
-            <x-mailcoach::warning>
-                <p class="text-sm mb-2">{{ __mc('Blade templates have the ability to run arbitrary PHP code. Only select Blade if you trust all users that have access to the Mailcoach UI.') }}</p>
-            </x-mailcoach::warning>
-        </div>
+                <x-mailcoach::text-field :label="__('Name')" name="name" :value="$template->name" required />
+                <x-mailcoach::help>
+                    {{ __('This name is used by the application to retrieve this template. Do not change it without updating the code of your app.') }}
+                </x-mailcoach::help>
 
-        <x-mailcoach::checkbox-field :label="__mc('Store mail')" name="template.store_mail" wire:model.lazy="template.store_mail" />
-    </x-mailcoach::fieldset>
 
-    <x-mailcoach::fieldset card :legend="__mc('Tracking')">
-        <div class="form-field">
-            <x-mailcoach::info>
-                {!! __mc('Open & Click tracking are managed by your email provider.') !!}
-            </x-mailcoach::info>
-        </div>
-    </x-mailcoach::fieldset>
+                <?php
+                    $editor = config('mailcoach.transactional.editor', \Spatie\Mailcoach\Domain\Shared\Support\Editor\TextEditor::class);
+                    $editorName = (new ReflectionClass($editor))->getShortName();
+                ?>
+                <x-mailcoach::select-field
+                    :label="__('Format')"
+                    name="type"
+                    :value="$template->type"
+                    :options="[
+                        'html' => 'HTML (' . $editorName . ')',
+                        'markdown' => 'Markdown',
+                        'blade' => 'Blade',
+                        'blade-markdown' => 'Blade with Markdown',
+                    ]"
+                    data-conditional="type"
+                />
 
-    <x-mailcoach::fieldset card :legend="__mc('Usage in Mailcoach API')">
-        <div>
-            <x-mailcoach::help>
-                {!! __mc('Whenever you need to specify a <code>:resourceName</code> in the Mailcoach API and want to use this :resource, you\'ll need to pass this value', [
-                'resourceName' => 'transactionalMailTemplate uuid',
-                'resource' => 'transactional email',
-            ]) !!}
-                <p class="mt-4">
-                    <x-mailcoach::code-copy class="flex items-center justify-between max-w-md" :code="$template->uuid"></x-mailcoach::code-copy>
-                </p>
-            </x-mailcoach::help>
-        </div>
-    </x-mailcoach::fieldset>
+                <div data-conditional-type="blade">
+                <x-mailcoach::warning>
+                    <p class="text-sm mb-2">{{ __('Blade templates have the ability to run arbitrary PHP code. Only select Blade if you trust all users that have access to the Mailcoach UI.') }}</p>
+                </x-mailcoach::warning>
+                </div>
 
-    <x-mailcoach::card buttons>
-        <x-mailcoach::button :label="__mc('Save settings')" />
-</x-mailcoach::card>
+                <div data-conditional-type="blade-markdown">
+                    <x-mailcoach::warning>
+                        <p class="text-sm mb-2">{{ __('Blade templates have the ability to run arbitrary PHP code. Only select Blade if you trust all users that have access to the Mailcoach UI.') }}</p>
+                    </x-mailcoach::warning>
+                </div>
 
-</form>
+                <x-mailcoach::checkbox-field :label="__('Store mail')" name="store_mail" :checked="$template->store_mail" />
+            </x-mailcoach::fieldset>
+
+            <x-mailcoach::fieldset :legend="__('Tracking')">
+                <div class="form-field">
+                    <label class="label">{{ __('Track when…') }}</label>
+                    <div class="checkbox-group">
+                        <x-mailcoach::checkbox-field :label="__('Someone opens this email')" name="track_opens" :checked="$template->track_opens" />
+                        <x-mailcoach::checkbox-field :label="__('Links in the email are clicked')" name="track_clicks" :checked="$template->track_clicks" />
+                    </div>
+                </div>
+            </x-mailcoach::fieldset>
+
+            <div class="form-buttons">
+                <x-mailcoach::button :label="__('Save settings')" />
+            </div>
+        </form>
+    </section>
+</x-mailcoach::layout-transactional-template>
+

@@ -1,159 +1,173 @@
-<form
-        x-data="{
-        post: @entangle('emailList.allow_form_subscriptions'),
-        confirmation: @entangle('emailList.requires_confirmation'),
-        confirmationMail: @entangle('confirmation_mail'),
-    }"
-        method="POST"
-        wire:submit.prevent="save"
-        @keydown.prevent.window.cmd.s="$wire.call('save')"
-        @keydown.prevent.window.ctrl.s="$wire.call('save')"
->
-    <div class="card-grid">
-        <x-mailcoach::fieldset card :legend="__mc('Subscriptions')">
-            <x-mailcoach::info>
-                {!! __mc('Learn more about <a href=":link" target="_blank">subscription settings and forms</a>.', ['link' => 'https://mailcoach.app/docs/v5/mailcoach/using-mailcoach/audience#content-onboarding']) !!}
-            </x-mailcoach::info>
+<x-mailcoach::layout-list :title="__('Onboarding')" :emailList="$emailList">
+    <form class="form-grid" method="POST">
+        @csrf
+        @method('PUT')
+
+        <x-mailcoach::fieldset :legend="__('Subscriptions')">
+            <x-mailcoach::help>
+                {!! __('Learn more about <a href=":link" class="link-dimmed" target="_blank">subscription settings and forms</a>.', ['link' => 'https://mailcoach.app/docs/v2/app/lists/settings#subscriptions']) !!}
+            </x-mailcoach::help>
 
             <div class="form-field max-w-full">
                 <div class="checkbox-group">
-                    <x-mailcoach::checkbox-field
-                            :label="__mc('Require confirmation')"
-                            name="emailList.requires_confirmation"
-                            x-model="confirmation"
-                    />
+                    <x-mailcoach::checkbox-field dataConditional="confirmation" :label="__('Require confirmation')"
+                                    name="requires_confirmation"
+                                    :checked="$emailList->requires_confirmation"/>
 
-                    <x-mailcoach::checkbox-field
-                            :label="__mc('Allow POST from an external form')"
-                            name="emailList.allow_form_subscriptions"
-                            x-model="post"
-                    />
-
-                    <div x-show="post" class="pl-8 w-full max-w-full overflow-hidden">
-                        <x-mailcoach::code-copy button-class="w-full text-right -mb-6" button-position="top" lang="html" :code="$emailList->getSubscriptionFormHtml()"/>
-                    </div>
+                    <x-mailcoach::checkbox-field dataConditional="post" :label="__('Allow POST from an external form')"
+                                    name="allow_form_subscriptions"
+                                    :checked="$emailList->allow_form_subscriptions"/>
+                    <code class="markup-code text-xs ml-8 -mt-1">&lt;form method="POST" action="{{$emailList->incomingFormSubscriptionsUrl()}}"&gt;</code>
                 </div>
             </div>
 
-            <div x-show="post" class="pl-8 max-w-xl">
+            <div data-conditional-post="true" class="pl-8 max-w-xl">
                 <x-mailcoach::tags-field
-                    :label="__mc('Optionally, allow following subscriber tags')"
+                    :label="__('Optionally, allow following subscriber tags')"
                     name="allowed_form_subscription_tags"
-                    :value="$allowed_form_subscription_tags"
-                    :tags="$emailList->tags->pluck('name')->unique()->toArray()"
+                    :value="$emailList->allowedFormSubscriptionTags->pluck('name')->toArray()"
+                    :tags="$emailList->tags->pluck('name')->toArray()"
                 />
             </div>
-            <div x-show="post" class="pl-8 max-w-xl">
-                <x-mailcoach::text-field
-                    :label="__mc('Optionally, allow following subscriber extra Attributes')"
-                    :placeholder="__mc('Attribute(s) comma separated: field1,field2')"
-                    name="emailList.allowed_form_extra_attributes"
-                    wire:model.lazy="emailList.allowed_form_extra_attributes"
-                />
-            </div>
-            <div x-show="post" class="pl-8 max-w-xl">
-                <x-mailcoach::text-field
-                    :label="__mc('Honeypot field')"
-                    placeholder="honeypot"
-                    name="emailList.honeypot_field"
-                    wire:model.lazy="emailList.honeypot_field"
-                />
-            </div>
+            <x-mailcoach::text-field :label="__('Optionally, allow following subscriber extra Attributes')" :placeholder="__('Attribute(s) comma separated: field1,field2')" name="allowed_form_extra_attributes" :value="$emailList->allowed_form_extra_attributes"/>
         </x-mailcoach::fieldset>
 
-        <x-mailcoach::fieldset card :legend="__mc('Landing Pages')">
-            <x-mailcoach::info>
-                {!! __mc('Leave empty to use the defaults. <a target="_blank" href=":link">Example</a>', ['link' => route("mailcoach.landingPages.example")]) !!}
-            </x-mailcoach::info>
 
-            <div x-show="confirmation">
-                <x-mailcoach::text-field :label="__mc('Confirm subscription')" placeholder="https://"
-                                         name="emailList.redirect_after_subscription_pending"
-                                         wire:model.lazy="emailList.redirect_after_subscription_pending" type="text"/>
+        <x-mailcoach::fieldset :legend="__('Landing Pages')">
+            <x-mailcoach::help>
+                {!! __('Leave empty to use the defaults. <a class="link-dimmed" target="_blank" href=":link">Example</a>', ['link' => route("mailcoach.landingPages.example")]) !!}
+            </x-mailcoach::help>
+
+            <div data-conditional-confirmation="true">
+                <x-mailcoach::text-field :label="__('Confirm subscription')" placeholder="https://" name="redirect_after_subscription_pending"
+                            :value="$emailList->redirect_after_subscription_pending" type="text"/>
             </div>
-            <x-mailcoach::text-field :label="__mc('Someone subscribed')" placeholder="https://"
-                                     name="emailList.redirect_after_subscribed"
-                                     wire:model.lazy="emailList.redirect_after_subscribed" type="text"/>
-            <x-mailcoach::text-field :label="__mc('Email was already subscribed')" placeholder="https://"
-                                     name="emailList.redirect_after_already_subscribed"
-                                     wire:model.lazy="emailList.redirect_after_already_subscribed"
-                                     type="text"/>
-            <x-mailcoach::text-field :label="__mc('Someone unsubscribed')" placeholder="https://"
-                                     name="emailList.redirect_after_unsubscribed"
-                                     wire:model.lazy="emailList.redirect_after_unsubscribed" type="text"/>
-        </x-mailcoach::fieldset>
+            <x-mailcoach::text-field :label="__('Someone subscribed')" placeholder="https://" name="redirect_after_subscribed"
+                        :value="$emailList->redirect_after_subscribed" type="text"/>
+            <x-mailcoach::text-field :label="__('Email was already subscribed')" placeholder="https://"
+                        name="redirect_after_already_subscribed" :value="$emailList->redirect_after_already_subscribed"
+                        type="text"/>
+            <x-mailcoach::text-field :label="__('Someone unsubscribed')" placeholder="https://" name="redirect_after_unsubscribed"
+                        :value="$emailList->redirect_after_unsubscribed" type="text"/>
+         </x-mailcoach::fieldset>
 
-        <div x-show="confirmation">
-            <x-mailcoach::fieldset card :legend="__mc('Confirmation mail')">
+        <div data-conditional-confirmation="true">
+            <x-mailcoach::fieldset :legend="__('Confirmation mail')">
                 @if(empty($emailList->confirmation_mailable_class))
                     <div class="radio-group">
                         <x-mailcoach::radio-field
-                                name="confirmation_mail"
-                                option-value="send_default_confirmation_mail"
-                                :label="__mc('Send default confirmation mail')"
-                                x-model="confirmationMail"
+                            name="confirmation_mail"
+                            option-value="send_default_confirmation_mail"
+                            :value="! $emailList->hasCustomizedConfirmationMailFields()"
+                            :label="__('Send default confirmation mail')"
+                            data-conditional="confirmation-mail"
                         />
                         <x-mailcoach::radio-field
-                                name="confirmation_mail"
-                                option-value="send_custom_confirmation_mail"
-                                :label="__mc('Send customized confirmation mail')"
-                                x-model="confirmationMail"
+                            name="confirmation_mail"
+                            option-value="send_custom_confirmation_mail"
+                            :value="$emailList->hasCustomizedConfirmationMailFields()"
+                            :label="__('Send customized confirmation mail')"
+                            data-conditional="confirmation-mail"
                         />
                     </div>
 
-                    <div class="form-grid" x-show="confirmationMail === 'send_custom_confirmation_mail'">
-                        @if (count($transactionalMailTemplates))
-                            <div class="flex items-center gap-x-2 max-w-sm">
-                                <div class="w-full">
-                                    <x-mailcoach::select-field
-                                        wire:model="emailList.confirmation_mail_id"
-                                        name="emailList.confirmation_mail_id"
-                                        :options="$transactionalMailTemplates"
-                                        :placeholder="__mc('Select a transactional mail template')"
-                                    />
-                                </div>
-                                @if ($emailList->confirmationMail)
-                                    <a href="{{ route('mailcoach.transactionalMails.templates.edit', $emailList->confirmationMail) }}" class="link">{{ __mc('Edit') }}</a>
-                                @endif
-                            </div>
-                        @else
-                            <x-mailcoach::info>
-                                {!! __mc('You need to create a transactional mail template first. <a href=":createLink" class="link">Create one here</a>', [
-                                    'createLink' => route('mailcoach.transactionalMails.templates'),
-                                ]) !!}
-                            </x-mailcoach::info>
-                        @endif
+                    <div class="form-grid" data-conditional-confirmation-mail="send_custom_confirmation_mail">
+                        <x-mailcoach::text-field :label="__('Subject')" name="confirmation_mail_subject"
+                                    :value="$emailList->confirmation_mail_subject" type="text"/>
 
-                        <x-mailcoach::help class="markup-code lg:max-w-3xl">
-                            {{ __mc('You can use the following placeholders in the subject and body of the confirmation mail:') }}
-                            <dl class="mt-4 markup-dl">
-                                <dt><code>::confirmUrl::</code></dt>
-                                <dd>{{ __mc('The URL where the subscription can be confirmed') }}</dd>
-                                <dt><code>::subscriber.first_name::</code></dt>
-                                <dd>{{ __mc('The first name of the subscriber') }}</dd>
-                                <dt><code>::list.name::</code></dt>
-                                <dd>{{ __mc('The name of this list') }}</dd>
-                            </dl>
-                        </x-mailcoach::help>
+                        <div class="form-field max-w-full">
+                            <label class="label label-required" for="html">{{ __('Body (HTML)') }}</label>
+                            <textarea class="input input-html" rows="20" id="html"
+                                    name="confirmation_mail_content">{{ old('confirmation_mail_content', $emailList->confirmation_mail_content) }}</textarea>
+                            @error('confirmation_mail_content')
+                            <p class="form-error">{{ $message }}</p>
+                            @enderror
+
+                            <div class="mt-12 markup-code alert alert-info text-sm">
+                                {{ __('You can use following placeholders in the subject and body of the confirmation mail:') }}
+                                <ul class="grid mt-2 gap-2">
+                                    <li><code class="mr-2">::confirmUrl::</code>{{ __('The URL where the subscription can be confirmed') }}</li>
+                                    <li><code class="mr-2">::subscriber.first_name::</code>{{ __('The first name of the subscriber') }}</li>
+                                    <li><code class="mr-2">::list.name::</code>{{ __('The name of this list') }}</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 @else
-                    <x-mailcoach::info>
-                        {{ __mc('A custom mailable (:mailable) will be used.', ['mailable' => $emailList->confirmation_mailable_class]) }}
-                    </x-mailcoach::info>
+                    <x-mailcoach::help>
+                        {{ __('A custom mailable (:mailable) will be used.', ['mailable' => $emailList->welcome_mailable_class]) }}
+                    </x-mailcoach::help>
                 @endif
             </x-mailcoach::fieldset>
         </div>
 
-        <x-mailcoach::fieldset card :legend="__mc('Welcome Mail')">
-            <x-mailcoach::help>
-                {!! __mc('Check out the <a href=":docsUrl" class="link">documentation</a> to learn how to set up a welcome automation.', [
-                    'docsUrl' => 'https://mailcoach.app/docs/cloud/using-mailcoach/automations/creating-automation'
-                ]) !!}
-            </x-mailcoach::help>
+        <x-mailcoach::fieldset :legend="__('Welcome Mail')">
+
+            @if(empty($emailList->welcome_mailable_class))
+                <div class="radio-group">
+                    <x-mailcoach::radio-field
+                        name="welcome_mail"
+                        option-value="do_not_send_welcome_mail"
+                        :value="! $emailList->send_welcome_mail"
+                        :label="__('Do not send a welcome mail')"
+                        data-conditional="welcome-mail"
+                    />
+                    <x-mailcoach::radio-field
+                        name="welcome_mail"
+                        option-value="send_default_welcome_mail"
+                        :value="($emailList->send_welcome_mail) && (! $emailList->hasCustomizedWelcomeMailFields())"
+                        :label="__('Send default welcome mail')"
+                        data-conditional="welcome-mail"
+                    />
+                    <x-mailcoach::radio-field
+                        name="welcome_mail"
+                        option-value="send_custom_welcome_mail"
+                        :value="$emailList->send_welcome_mail && $emailList->hasCustomizedWelcomeMailFields()"
+                        :label="__('Send customized welcome mail')"
+                        data-conditional="welcome-mail"
+                    />
+                </div>
+
+                <div class="form-grid" data-conditional-unless-welcome-mail="do_not_send_welcome_mail">
+                    <x-mailcoach::text-field :label="__('Delay sending welcome mail in minutes')"
+                                :value="$emailList->welcome_mail_delay_in_minutes"
+                                name="welcome_mail_delay_in_minutes"
+                                placeholder="Delay in minutes"/>
+                </div>
+
+                <div class="form-grid" data-conditional-welcome-mail="send_custom_welcome_mail">
+                    <x-mailcoach::text-field :label="__('Subject')" name="welcome_mail_subject"
+                                :value="$emailList->welcome_mail_subject" type="text"/>
+
+                    <div class="form-field max-w-full">
+                        <label class="label label-required" for="html">{{ __('Body (HTML)') }}</label>
+                        <textarea class="input input-html" rows="20" id="html"
+                                name="welcome_mail_content">{{ old('welcome_mail_content', $emailList->welcome_mail_content) }}</textarea>
+                        @error('welcome_mail_content')
+                        <p class="form-error">{{ $message }}</p>
+                        @enderror
+
+                        <div class="mt-12 markup-code alert alert-info text-sm">
+                            {{ __('You can use following placeholders in the subject and body of the welcome mail:') }}
+                            <ul class="grid mt-2 gap-2">
+                                <li><code class="mr-2">::unsubscribeUrl::</code>{{ __('The URL where users can unsubscribe') }}</li>
+                                <li><code class="mr-2">::subscriber.first_name::</code>{{ __('The first name of the subscriber') }}</li>
+                                <li><code class="mr-2">::subscriber.email::</code>{{ __('The email of the subscriber') }}</li>
+                                <li><code class="mr-2">::list.name::</code>{{ __('The name of this list') }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            @else
+                <x-mailcoach::help>
+                    {{ __('A custom mailable (:mailable) will be used.', ['mailable' => $emailList->welcome_mailable_class]) }}
+                </x-mailcoach::help>
+            @endif
         </x-mailcoach::fieldset>
 
-        <x-mailcoach::card buttons>
-            <x-mailcoach::button :label="__mc('Save')"/>
-        </x-mailcoach::card>
-    </div>
-</form>
+        <div class="form-buttons">
+            <x-mailcoach::button :label="__('Save')"/>
+        </div>
+    </form>
+</x-mailcoach::layout-list>
+

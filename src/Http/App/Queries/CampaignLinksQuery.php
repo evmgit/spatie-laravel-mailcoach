@@ -2,7 +2,6 @@
 
 namespace Spatie\Mailcoach\Http\App\Queries;
 
-use Illuminate\Http\Request;
 use Spatie\Mailcoach\Domain\Campaign\Models\Campaign;
 use Spatie\Mailcoach\Http\App\Queries\Filters\FuzzyFilter;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -10,13 +9,13 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class CampaignLinksQuery extends QueryBuilder
 {
-    public function __construct(Campaign $campaign, ?Request $request = null)
+    public function __construct(Campaign $campaign)
     {
         $query = $campaign
             ->links()
             ->getQuery();
 
-        parent::__construct($query, $request);
+        parent::__construct($query);
 
         $this
             ->defaultSort('-unique_click_count')

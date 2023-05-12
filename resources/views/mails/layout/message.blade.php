@@ -1,8 +1,8 @@
-@component('mail::layout')
+@component('mailcoach::mails.layout.layout')
 {{-- Header --}}
 @slot('header')
-@component('mail::header', ['url' => config('app.url')])
-<img width="570" style="max-width:570px;width:100%" src="{{ asset('/emails/header.png') }}" alt="Mailcoach">
+@component('mailcoach::mails.layout.header', ['url' => config('app.url')])
+{{ config('app.name') }}
 @endcomponent
 @endslot
 
@@ -12,7 +12,7 @@
 {{-- Subcopy --}}
 @isset($subcopy)
 @slot('subcopy')
-@component('mail::subcopy')
+@component('mailcoach::mails.layout.subcopy')
 {{ $subcopy }}
 @endcomponent
 @endslot
@@ -20,8 +20,8 @@
 
 {{-- Footer --}}
 @slot('footer')
-@component('mail::footer')
-<a href="{{config('app.url')}}">Powered by {{ config('app.name') }}</a>
+@component('mailcoach::mails.layout.footer')
+© {{ date('Y') }} {{ config('app.name') }}. @lang('All rights reserved.')
 @endcomponent
 @endslot
 @endcomponent

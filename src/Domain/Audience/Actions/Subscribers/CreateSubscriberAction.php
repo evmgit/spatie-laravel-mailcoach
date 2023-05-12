@@ -2,42 +2,44 @@
 
 namespace Spatie\Mailcoach\Domain\Audience\Actions\Subscribers;
 
+use Spatie\Mailcoach\Domain\Audience\Actions\Subscribers\Concerns\SendsWelcomeMail;
 use Spatie\Mailcoach\Domain\Audience\Events\SubscribedEvent;
 use Spatie\Mailcoach\Domain\Audience\Models\Subscriber;
 use Spatie\Mailcoach\Domain\Audience\Support\PendingSubscriber;
+use Spatie\Mailcoach\Domain\Shared\Support\Config;
 use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
-use Spatie\Mailcoach\Mailcoach;
 
 class CreateSubscriberAction
 {
+    use SendsWelcomeMail;
     use UsesMailcoachModels;
 
     public function execute(PendingSubscriber $pendingSubscriber): Subscriber
     {
-        /** @var class-string<Subscriber> $subscriberClass */
-        $subscriberClass = self::getSubscriberClass();
+        $subscriber = $this->getSubscriberClass()::findForEmail($pendingSubscriber->email, $pendingSubscriber->emailList);
 
-        $subscriber = $subscriberClass::findForEmail($pendingSubscriber->email, $pendingSubscriber->emailList);
-
-        $wasAlreadySubscribed = $subscriber?->isSubscribed();
+        $wasAlreadySubscribed = optional($subscriber)->isSubscribed();
 
         if (! $subscriber) {
-            $subscriber = new $subscriberClass([
+            $subscriber = $this->getSubscriberClass()::make([
                 'email' => $pendingSubscriber->email,
                 'email_list_id' => $pendingSubscriber->emailList->id,
             ]);
         }
 
         $subscriber->fill([
-            'email' => $pendingSubscriber->email,
-            'subscribed_at' => $subscriber->subscribed_at ?? $pendingSubscriber->subscribedAt ?? now(),
+            'subscribed_at' => now(),
             'unsubscribed_at' => null,
         ]);
 
         $subscriber->fill($pendingSubscriber->attributes);
 
-        if (! $wasAlreadySubscribed && $pendingSubscriber->emailList->requires_confirmation && $pendingSubscriber->respectDoubleOptIn) {
-            $subscriber->subscribed_at = null;
+        if (! $wasAlreadySubscribed) {
+            if ($pendingSubscriber->emailList->requires_confirmation) {
+                if ($pendingSubscriber->respectDoubleOptIn) {
+                    $subscriber->subscribed_at = null;
+                }
+            }
         }
 
         $subscriber->save();
@@ -49,12 +51,16 @@ class CreateSubscriberAction
         }
 
         if ($subscriber->isUnconfirmed()) {
-            $sendConfirmSubscriberMailAction = Mailcoach::getAudienceActionClass('send_confirm_subscriber_mail', SendConfirmSubscriberMailAction::class);
+            $sendConfirmSubscriberMailAction = Config::getAudienceActionClass('send_confirm_subscriber_mail', SendConfirmSubscriberMailAction::class);
 
             $sendConfirmSubscriberMailAction->execute($subscriber, $pendingSubscriber->redirectAfterSubscribed);
         }
 
-        if ($subscriber->isSubscribed() && ! $subscriber->imported_via_import_uuid) {
+        if ($subscriber->isSubscribed()) {
+            if ($pendingSubscriber->sendWelcomeMail && ! $wasAlreadySubscribed) {
+                $this->sendWelcomeMail($subscriber);
+            }
+
             event(new SubscribedEvent($subscriber));
         }
 

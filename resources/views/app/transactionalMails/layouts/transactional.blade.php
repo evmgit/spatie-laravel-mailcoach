@@ -5,16 +5,18 @@
 >
 
      <x-slot name="nav">
-        <x-mailcoach::navigation :title="$transactionalMail->subject">
-            <x-mailcoach::navigation-item :href="route('mailcoach.transactionalMails.show', $transactionalMail)">
-                {{ __mc('Content') }}
-            </x-mailcoach::navigation-item>
-            <x-mailcoach::navigation-item :href="route('mailcoach.transactionalMails.performance', $transactionalMail)">
-                {{ __mc('Performance') }}
-            </x-mailcoach::navigation-item>
-            <x-mailcoach::navigation-item :href="route('mailcoach.transactionalMails.resend', $transactionalMail)">
-                {{ __mc('Resend') }}
-            </x-mailcoach::navigation-item>
+        <x-mailcoach::navigation :title="$transactionalMail->subject" :backHref="route('mailcoach.transactionalMails')" :backLabel="__('Log')">
+            <x-mailcoach::navigation-group>
+                <x-mailcoach::navigation-item :href="route('mailcoach.transactionalMail.show', $transactionalMail)">
+                    {{ __('Content') }}
+                </x-mailcoach::navigation-item>
+                <x-mailcoach::navigation-item :href="route('mailcoach.transactionalMail.performance', $transactionalMail)">
+                    {{ __('Performance') }}
+                </x-mailcoach::navigation-item>
+                <x-mailcoach::navigation-item :href="route('mailcoach.transactionalMail.resend', $transactionalMail)">
+                    {{ __('Resend') }}
+                </x-mailcoach::navigation-item>
+            </x-mailcoach::navigation-group>
         </x-mailcoach::navigation>
     </x-slot>
 

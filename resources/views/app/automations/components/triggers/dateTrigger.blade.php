@@ -1,6 +1,6 @@
 <div>
     <x-mailcoach::date-time-field
-        :label="__mc('Date')"
+        :label="__('Date')"
         name="date"
         :value="$automation->getTrigger()->date ?? null"
         required

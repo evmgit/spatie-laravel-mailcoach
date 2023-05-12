@@ -1,10 +1,14 @@
-<x-mailcoach::card>
+<x-mailcoach::layout-transactional
+    :title="__('Resend')"
+    :transactionalMail="$transactionalMail"
+>
     @if($transactionalMail->opens->count())
-        <x-mailcoach::warning>{{ __mc('This mail has already been opened, are you sure you want to resend it?') }}</x-mailcoach::warning>
+        <x-mailcoach::warning>{{ __('This mail has already been opened, are you sure you want to resend it?') }}</x-mailcoach::warning>
     @else
-        <x-mailcoach::info>{{ __mc('This mail hasn\'t been opened yet.') }}</x-mailcoach::info>
+        <x-mailcoach::help>{{ __('This mail hasn\'t been opened yet.') }}</x-mailcoach::help>
     @endif
-    <x-mailcoach::form-buttons>
-    <x-mailcoach::button :label="__mc('Resend')" class="mt-4 button" wire:click.prevent="resend" />
-    </x-mailcoach::form-buttons>
-</x-mailcoach::card>
+
+    <x-mailcoach::form-button class="mt-4 button" action="{{ route('mailcoach.transactionalMail.resend', $transactionalMail) }}">
+        {{__('Resend')}}
+    </x-mailcoach::form-button>
+</x-mailcoach::layout-transactional>

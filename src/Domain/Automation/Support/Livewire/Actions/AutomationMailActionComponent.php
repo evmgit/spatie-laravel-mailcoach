@@ -10,7 +10,7 @@ class AutomationMailActionComponent extends AutomationActionComponent
 {
     use UsesMailcoachModels;
 
-    public int|
+    public int |
 
 string $automation_mail_id = '';
 

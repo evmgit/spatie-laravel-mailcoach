@@ -13,7 +13,7 @@ class CampaignClicksController
 
     public function __invoke(Campaign $campaign)
     {
-        $this->authorize('view', $campaign);
+        $this->authorize("view", $campaign);
 
         $campaignLinks = new CampaignLinksQuery($campaign);
 

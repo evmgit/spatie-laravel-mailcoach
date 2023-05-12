@@ -15,9 +15,9 @@ class ResendConfirmationMailController
 
     public function __invoke(
         Subscriber $subscriber,
-        SendConfirmSubscriberMailAction $sendConfirmSubscriberMailAction
+        SendConfirmSubscriberMailAction  $sendConfirmSubscriberMailAction
     ) {
-        $this->authorize('update', $subscriber->emailList);
+        $this->authorize("update", $subscriber->emailList);
 
         $this->ensureUnconfirmedSubscribed($subscriber);
 

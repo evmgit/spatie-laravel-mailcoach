@@ -2,7 +2,6 @@
 
 namespace Spatie\Mailcoach\Http\App\Queries;
 
-use Illuminate\Http\Request;
 use Spatie\Mailcoach\Domain\Campaign\Models\Campaign;
 use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
 use Spatie\Mailcoach\Http\App\Queries\Filters\FuzzyFilter;
@@ -14,18 +13,17 @@ class CampaignSendsQuery extends QueryBuilder
 {
     use UsesMailcoachModels;
 
-    public function __construct(Campaign $campaign, Request $request)
+    public function __construct(Campaign $campaign)
     {
-        parent::__construct(self::getSendClass()::query(), $request);
+        parent::__construct($this->getSendClass()::query());
 
         $this
-            ->addSelect(['subscriber_email' => self::getSubscriberClass()::select('email')
+            ->addSelect(['subscriber_email' => $this->getSubscriberClass()::select('email')
                 ->whereColumn('subscriber_id', "{$this->getSubscriberTableName()}.id")
                 ->limit(1),
             ])
             ->with('feedback')
             ->where('campaign_id', $campaign->id)
-            ->whereNull('invalidated_at')
             ->defaultSort('created_at')
             ->with(['campaign', 'subscriber'])
             ->allowedSorts(

@@ -4,24 +4,19 @@ namespace Spatie\Mailcoach\Http\Api\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin \Spatie\Mailcoach\Domain\Campaign\Models\Campaign */
 class CampaignResource extends JsonResource
 {
     public function toArray($request)
     {
-        $fields = collect($this->getTemplateFieldValues())->map(function ($field) {
-            return $field['markdown'] ?? $field; // If we have markdown content, only return the markdown
-        })->toArray();
-
         return [
-            'uuid' => $this->uuid,
+            'id' => $this->id,
             'name' => $this->name,
+            'uuid' => $this->uuid,
 
-            'email_list_uuid' => $this->emailList->uuid,
+            'email_list_id' => (int)$this->email_list_id,
             'email_list' => new EmailListResource($this->whenLoaded('emailList')),
 
-            'template_uuid' => $this->template?->uuid,
-            'template' => new TemplateResource($this->whenLoaded('template')),
+            'segment' => new SegmentResource($this->whenLoaded('segment')),
 
             'from_email' => $this->from_email,
             'from_name' => $this->subject,
@@ -33,10 +28,10 @@ class CampaignResource extends JsonResource
             'email_html' => $this->email_html,
             'webview_html' => $this->webview_html,
 
-            'fields' => $fields,
-
             'mailable_class' => $this->mailable_class,
 
+            'track_opens' => $this->track_opens,
+            'track_clicks' => $this->track_clicks,
             'utm_tags' => $this->utm_tags,
 
             'sent_to_number_of_subscribers' => $this->sent_to_number_of_subscribers,

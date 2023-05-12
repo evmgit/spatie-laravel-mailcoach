@@ -9,10 +9,10 @@ class CampaignUnsubscribeResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'campaign_uuid' => $this->campaign->uuid,
+            'campaign_id' => (int)$this->campaign_id,
             'campaign' => new CampaignResource($this->whenLoaded('campaign')),
 
-            'subscriber_uuid' => $this->subscriber->uuid,
+            'subscriber_id' => (int)$this->subscriber_id,
             'subscriber_email' => $this->subscriber->email,
             'subscriber' => new SubscriberResource($this->whenLoaded('subscriber')),
         ];

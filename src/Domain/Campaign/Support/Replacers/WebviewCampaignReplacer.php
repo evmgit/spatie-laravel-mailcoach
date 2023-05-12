@@ -9,7 +9,7 @@ class WebviewCampaignReplacer implements CampaignReplacer
     public function helpText(): array
     {
         return [
-            'webviewUrl' => __mc('This URL will display the HTML of the campaign'),
+            'webviewUrl' => __('This URL will display the HTML of the campaign'),
         ];
     }
 
@@ -17,9 +17,6 @@ class WebviewCampaignReplacer implements CampaignReplacer
     {
         $webviewUrl = $campaign->webviewUrl();
 
-        $text = str_ireplace('::webviewUrl::', $webviewUrl, $text);
-        $text = str_ireplace(urlencode('::webviewUrl::'), $webviewUrl, $text);
-
-        return $text;
+        return str_ireplace('::webviewUrl::', $webviewUrl, $text);
     }
 }

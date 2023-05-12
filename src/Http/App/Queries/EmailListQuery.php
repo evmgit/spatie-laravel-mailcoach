@@ -2,7 +2,6 @@
 
 namespace Spatie\Mailcoach\Http\App\Queries;
 
-use Illuminate\Http\Request;
 use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
 use Spatie\Mailcoach\Http\App\Queries\Filters\FuzzyFilter;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -12,7 +11,7 @@ class EmailListQuery extends QueryBuilder
 {
     use UsesMailcoachModels;
 
-    public function __construct(?Request $request = null)
+    public function __construct()
     {
         $query = $this->getEmailListClass()::query()
             ->addSelect([
@@ -22,7 +21,7 @@ class EmailListQuery extends QueryBuilder
                     ->whereColumn("{$this->getSubscriberTableName()}.email_list_id", static::getEmailListTableName().'.id'),
             ]);
 
-        parent::__construct($query, $request);
+        parent::__construct($query);
 
         $this
             ->defaultSort('name')

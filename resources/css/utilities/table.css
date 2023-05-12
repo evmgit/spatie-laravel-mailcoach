@@ -1,69 +1,76 @@
-.table-styled {
+.table {
     @apply table-fixed;
-    @apply min-w-full;
-    @apply mx-0;
-    @apply border-separate;
-    @apply border-spacing-0;
+    @apply border-collapse;
+    @apply border-b;
+    @apply border-gray-100;
+    width: calc(100% + 1.5rem);
+    overflow-x: visible;
+    @apply -mx-3;
 }
 
-.table-styled:not(:first-child) {
+@screen lg {
+    .table {
+        @apply w-full;
+        @apply mx-0;
+    }
+}
+
+.table:not(:first-child) {
     @apply mt-8;
 }
 
-.table-styled th,
-.table-styled td {
+.table thead tr {
+    @apply border-b-2;
+    @apply border-gray-100;
+    font-size: 0.875em;
+}
+
+.table th,
+.table td {
     @apply py-3;
-    @apply px-6;
-    @apply md:first:pl-10;
-    @apply md:last:pr-10;
+    @apply pr-6;
     @apply align-top;
 }
 
-.table-styled th {
+.table th {
     @apply text-left;
     @apply font-semibold;
     @apply whitespace-nowrap;
     @apply uppercase;
     @apply text-xs;
     @apply tracking-wider;
-    @apply bg-white;
-    @apply z-10;
-    @apply border-b;
-    @apply border-indigo-500/20;
-    @apply bg-gradient-to-b;
-    @apply from-indigo-500/5;
-    @apply to-indigo-500/10;
-    @apply first:rounded-tl;
-    @apply last:rounded-tr;
-
-    @apply md:sticky;
-    @apply md:top-16;
 }
 
-.table-styled tbody td {
-    @apply border-b;
-    @apply border-indigo-500/20;
-    @apply leading-snug;
+.table tbody tr:nth-child(even) {
+    @apply bg-gray-200;
+    @apply bg-opacity-20;
 }
 
-.table-styled thead .th-numeric,
-.table-styled tbody .td-numeric {
+.table tbody tr:nth-child(even) .td-action {
+    @apply bg-transparent;
+}
+
+.tr-h-double td {
+    height: 4rem;
+}
+
+.table thead .th-numeric,
+.table tbody .td-numeric {
     @apply text-right;
     font-variant-numeric: tabular-nums;
     @apply whitespace-nowrap;
 }
 
-.table-styled thead a {
+.table thead a {
     @apply flex;
     @apply items-center;
 }
 
-.table-styled thead i {
+.table thead i {
     @apply mx-1;
-    @apply opacity-50;
 }
 
-.table-styled thead .th-numeric a {
+.table thead .th-numeric a {
     @apply flex;
     @apply flex-row-reverse;
 }
@@ -74,44 +81,41 @@
     @apply leading-tight;
 }
 
-.table-styled .td-action {
-    @apply text-right;
-    @apply px-6;
-    @apply md:px-4;
-}
-
 .table-status {
-    @apply text-sm;
+    @apply py-8;
+    @apply text-xs;
+    @apply text-gray-500;
     @apply text-center;
 }
 
+.table .td-action {
+    @apply text-right;
+    @apply px-6;
+}
+
+@screen md {
+    .table .td-action {
+        @apply px-4;
+    }
+}
+
 .table-actions {
-    @apply w-full;
     @apply flex;
-    @apply flex-col;
-    @apply lg:flex-row;
-    @apply items-start;
-    @apply lg:items-end;
     @apply flex-wrap;
+    @apply items-center;
     @apply justify-between;
-    @apply gap-x-6;
-    @apply gap-y-4;
-    @apply empty:hidden;
+    @apply -mt-4;
+    @apply mb-8;
+}
+
+.table-actions > * {
+    @apply mt-4;
 }
 
 .table-filters {
-    @apply self-stretch;
     @apply flex;
-    @apply flex-col;
-    @apply items-start;
-    @apply gap-x-6;
-    @apply gap-y-2;
-    @apply justify-between;
-    @apply sm:flex-row;
-    @apply sm:items-end;
-    @apply lg:ml-auto;
-}
-
-.table-filters .filters {
-    @apply sm:mr-auto;
+    @apply items-center;
+    @apply justify-end;
+    @apply ml-auto;
+    @apply pl-4;
 }

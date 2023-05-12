@@ -9,7 +9,7 @@ class WebviewAutomationMailReplacer implements AutomationMailReplacer
     public function helpText(): array
     {
         return [
-            'webviewUrl' => __mc('This URL will display the HTML of the automation mail'),
+            'webviewUrl' => __('This URL will display the HTML of the automation mail'),
         ];
     }
 
@@ -17,9 +17,6 @@ class WebviewAutomationMailReplacer implements AutomationMailReplacer
     {
         $webviewUrl = $automationMail->webviewUrl();
 
-        $text = str_ireplace('::webviewUrl::', $webviewUrl, $text);
-        $text = str_ireplace(urlencode('::webviewUrl::'), $webviewUrl, $text);
-
-        return $text;
+        return str_ireplace('::webviewUrl::', $webviewUrl, $text);
     }
 }

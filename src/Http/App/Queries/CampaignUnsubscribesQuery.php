@@ -2,7 +2,6 @@
 
 namespace Spatie\Mailcoach\Http\App\Queries;
 
-use Illuminate\Http\Request;
 use Spatie\Mailcoach\Domain\Campaign\Models\Campaign;
 use Spatie\Mailcoach\Http\App\Queries\Filters\FuzzyFilter;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -10,12 +9,9 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class CampaignUnsubscribesQuery extends QueryBuilder
 {
-    public function __construct(Campaign $campaign, ?Request $request = null)
+    public function __construct(Campaign $campaign)
     {
-        parent::__construct(
-            $campaign->unsubscribes()->getQuery(),
-            $request,
-        );
+        parent::__construct($campaign->unsubscribes()->getQuery());
 
         $this
             ->defaultSort('-created_at', '-id')

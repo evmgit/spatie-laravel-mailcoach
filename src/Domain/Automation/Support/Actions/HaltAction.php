@@ -2,27 +2,27 @@
 
 namespace Spatie\Mailcoach\Domain\Automation\Support\Actions;
 
-use Spatie\Mailcoach\Domain\Automation\Models\ActionSubscriber;
+use Spatie\Mailcoach\Domain\Audience\Models\Subscriber;
 use Spatie\Mailcoach\Domain\Automation\Support\Actions\Enums\ActionCategoryEnum;
 
 class HaltAction extends AutomationAction
 {
     public static function getCategory(): ActionCategoryEnum
     {
-        return ActionCategoryEnum::Pause;
+        return ActionCategoryEnum::pause();
     }
 
     public static function getName(): string
     {
-        return (string) __mc('Halt the automation');
+        return (string) __('Halt the automation');
     }
 
-    public function shouldHalt(ActionSubscriber $actionSubscriber): bool
+    public function shouldHalt(Subscriber $subscriber): bool
     {
         return true;
     }
 
-    public function shouldContinue(ActionSubscriber $actionSubscriber): bool
+    public function shouldContinue(Subscriber $subscriber): bool
     {
         return false;
     }

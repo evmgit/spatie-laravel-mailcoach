@@ -1,39 +1,17 @@
-.button,
-input[type='file']::file-selector-button {
+.button {
     @apply px-6;
     @apply h-10;
-    @apply bg-blue-800;
-    @apply bg-gradient-to-b;
-    @apply from-indigo-700/10;
-    @apply via-blue-700;
-    @apply to-indigo-700/50;
-    @apply text-white/90;
-    @apply whitespace-nowrap;
-    @apply rounded-md;
-    @apply shadow-md;
-    @apply shadow-blue-800/20;
-    @apply font-bold;
-    @apply transition-[background-position,border];
-    @apply duration-[50ms];
+    @apply bg-gradient-to-b; 
+    @apply from-blue-500;
+    @apply to-blue-600;
+    @apply text-white;
     @apply border;
-    @apply border-t-white/30;
-    @apply border-l-white/30;
-    @apply border-r-black/10;
-    @apply border-b-black/10;
-    background-position: 0 100%;
-    background-size: 100% 200%;
-    @apply tracking-wide;
-}
-
-input[type='file'] {
-    @apply input;
-    @apply rounded-l-md;
-    @apply text-indigo-900/50;
-}
-input[type='file']::file-selector-button {
-    @apply rounded-r-none;
-    @apply relative;
-    @apply -left-3;
+    @apply border-transparent;
+    @apply whitespace-nowrap;
+    @apply rounded;
+    @apply shadow-focus;
+    @apply font-semibold;
+    transition: background-color 0.15s ease;
 }
 
 .button:disabled {
@@ -44,32 +22,20 @@ input[type='file']::file-selector-button {
 .button:not(:disabled):hover,
 .button:not(:disabled):focus,
 .button.dropdown-trigger-open {
-    @apply text-white;
-    @apply border-t-black/10;
-    @apply border-l-black/10;
-    @apply border-r-white/30;
-    @apply border-b-white/30;
-    background-position: 0 0;
-}
-
-.button:not(:disabled):focus {
-    @apply border-blue-500;
+    @apply bg-gradient-to-b; 
+    @apply from-blue-600;
+    @apply to-blue-700;
 }
 
 .button:not(:disabled):active {
     @apply shadow-inner;
-    @apply translate-y-px;
-    @apply border-t-black/10;
-    @apply border-l-black/10;
-    @apply border-r-white/30;
-    @apply border-b-white/30;
+    transform: translateY(1px);
 }
 
 .button-secondary {
-    @apply py-2;
     @apply underline;
     @apply whitespace-nowrap;
-    @apply text-blue-700;
+    @apply text-blue-500;
     @apply shadow-none;
     transition: background-color 0.15s ease;
 }
@@ -81,21 +47,20 @@ input[type='file']::file-selector-button {
 
 .button-secondary:not(:disabled):hover,
 .button-secondary:not(:disabled):focus {
-    @apply text-blue-800;
+    @apply text-blue-700
 }
 
 .button-secondary:not(:disabled):active {
-    @apply translate-y-px;
+    transform: translateY(1px);
 }
 
-.button + .button {
-    @apply ml-2;
-}
-
-.button + .button-secondary,
-.button + .button-cancel,
-.button-secondary + .button-secondary {
-    @apply ml-4;
+.buttons {
+    @apply grid;
+    @apply grid-cols-auto;
+    @apply grid-flow-col;
+    @apply items-center;
+    @apply justify-start;
+    @apply gap-1;
 }
 
 .button-cancel {
@@ -119,7 +84,7 @@ input[type='file']::file-selector-button {
     @apply to-red-700;
 }
 
-.button.button-rounded {
+.button-rounded {
     @apply p-0;
     @apply h-6;
     @apply w-6;
@@ -127,33 +92,28 @@ input[type='file']::file-selector-button {
     @apply items-center;
     @apply justify-center;
     @apply rounded-full;
+    @apply text-gray-600;
+    @apply bg-white;
     @apply text-sm;
-    @apply text-white;
+    @apply border;
+    @apply border-gray-300;
+    @apply whitespace-nowrap;
+    transition: background-color 0.15s ease;
 }
 
-.button.button-green {
-    @apply bg-green-800;
-    @apply from-green-700/30;
-    @apply via-green-700;
-    @apply to-green-700/50;
-    @apply shadow-md;
-    @apply shadow-green-800/20;
+.button-rounded:disabled {
+    @apply opacity-50;
+    @apply cursor-not-allowed;
 }
 
-.button.button-green {
-    @apply bg-green-700;
-    @apply from-green-600/30;
-    @apply via-green-600;
-    @apply to-green-600/50;
-    @apply shadow-md;
-    @apply shadow-green-800/20;
+.button-rounded:not(:disabled):hover,
+.button-rounded:not(:disabled):focus,
+.button-rounded.dropdown-trigger-open {
+    @apply bg-yellow-200;
+    @apply text-yellow-700;
 }
 
-.button.button-orange {
-    @apply bg-orange-700;
-    @apply from-orange-600/30;
-    @apply via-orange-600;
-    @apply to-orange-600/50;
-    @apply shadow-md;
-    @apply shadow-orange-800/20;
+.button-rounded:not(:disabled):active {
+    @apply shadow-inner;
+    transform: translateY(1px);
 }

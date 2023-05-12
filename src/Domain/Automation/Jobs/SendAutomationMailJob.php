@@ -2,19 +2,17 @@
 
 namespace Spatie\Mailcoach\Domain\Automation\Jobs;
 
-use Carbon\CarbonInterface;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Spatie\Mailcoach\Domain\Automation\Actions\SendMailAction;
 use Spatie\Mailcoach\Domain\Shared\Models\Send;
-use Spatie\Mailcoach\Mailcoach;
+use Spatie\Mailcoach\Domain\Shared\Support\Config;
 use Spatie\RateLimitedMiddleware\RateLimited;
 
-class SendAutomationMailJob implements ShouldQueue, ShouldBeUnique
+class SendAutomationMailJob implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
@@ -28,43 +26,45 @@ class SendAutomationMailJob implements ShouldQueue, ShouldBeUnique
     /** @var string */
     public $queue;
 
-    public function uniqueId(): string
-    {
-        return "{$this->pendingSend->id}";
-    }
-
-    public function retryUntil(): CarbonInterface
-    {
-        return now()->addHour();
-    }
-
     public function __construct(Send $pendingSend)
     {
         $this->pendingSend = $pendingSend;
 
         $this->queue = config('mailcoach.automation.perform_on_queue.send_automation_mail_job');
 
-        $this->connection = $this->connection ?? Mailcoach::getQueueConnection();
+        $this->connection = $this->connection ?? Config::getQueueConnection();
     }
 
     public function handle()
     {
         /** @var \Spatie\Mailcoach\Domain\Automation\Actions\SendMailAction $sendMailAction */
-        $sendMailAction = Mailcoach::getAutomationActionClass('send_mail', SendMailAction::class);
+        $sendMailAction = Config::getAutomationActionClass('send_mail', SendMailAction::class);
 
         $sendMailAction->execute($this->pendingSend);
     }
 
-    public function middleware(): array
+    public function middleware()
     {
-        $mailer = $this->pendingSend->subscriber->emailList->automation_mailer ?? Mailcoach::defaultAutomationMailer();
+        $throttlingConfig = config('mailcoach.campaigns.throttling');
+        $rateLimitDriver = config('mailcoach.shared.rate_limit_driver', 'redis');
 
-        $rateLimitedMiddleware = (new RateLimited(useRedis: false))
-            ->key('mailer-throttle-'.$mailer)
-            ->allow(config("mail.mailers.{$mailer}.mails_per_timespan", 10))
-            ->everySeconds(config("mail.mailers.{$mailer}.timespan_in_seconds", 1))
-            ->releaseAfterOneSecond();
+        if ($rateLimitDriver === 'redis') {
+            $rateLimitedMiddleware = (new RateLimited())
+                ->connectionName($throttlingConfig['redis_connection_name']);
+        } else {
+            $rateLimitedMiddleware = (new RateLimited(useRedis: false));
+        }
+
+        $rateLimitedMiddleware->enabled($throttlingConfig['enabled'])
+            ->allow($throttlingConfig['allowed_number_of_jobs_in_timespan'])
+            ->everySeconds($throttlingConfig['timespan_in_seconds'])
+            ->releaseAfterSeconds($throttlingConfig['release_in_seconds']);
 
         return [$rateLimitedMiddleware];
+    }
+
+    public function retryUntil()
+    {
+        return now()->addHours(config('mailcoach.campaigns.throttling.retry_until_hours', 24));
     }
 }

@@ -11,9 +11,9 @@
         value="{{ $optionValue }}"
         class="radio"
         @if($checked) checked @endif
+        @isset($dataConditional) data-conditional="{{ $dataConditional }}" @endisset
         @if($disabled ?? false) disabled="disabled" @endif
         @if($readOnly ?? false) readonly="readonly" @endif
-        {{ $attributes }}
     >
     <span>{{ $label }}</span>
 </label>

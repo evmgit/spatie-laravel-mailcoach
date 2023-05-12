@@ -62,9 +62,4 @@ class CouldNotSendCampaign extends Exception
     {
         return new static("The campaign with id `{$campaign->id}` can't be sent because it has no no from email.");
     }
-
-    public static function requirementsNotMet(Campaign $campaign): self
-    {
-        return new static("The campaign with id `{$campaign->id}` can't be sent because its requirements have not been met: ".implode(', ', $campaign->validateRequirements()));
-    }
 }

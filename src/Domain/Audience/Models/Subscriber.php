@@ -10,18 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
-use ParagonIE\CipherSweet\BlindIndex;
-use ParagonIE\CipherSweet\CipherSweet as CipherSweetEngine;
-use ParagonIE\CipherSweet\EncryptedRow;
-use Spatie\LaravelCipherSweet\Concerns\UsesCipherSweet;
-use Spatie\LaravelCipherSweet\Contracts\CipherSweetEncrypted;
-use Spatie\LaravelCipherSweet\Observers\ModelObserver;
 use Spatie\Mailcoach\Database\Factories\SubscriberFactory;
 use Spatie\Mailcoach\Domain\Audience\Actions\Subscribers\ConfirmSubscriberAction;
-use Spatie\Mailcoach\Domain\Audience\Encryption\Transformation\EmailFirstPart;
-use Spatie\Mailcoach\Domain\Audience\Encryption\Transformation\EmailSecondPart;
-use Spatie\Mailcoach\Domain\Audience\Encryption\Transformation\Lowercase;
 use Spatie\Mailcoach\Domain\Audience\Enums\SubscriptionStatus;
 use Spatie\Mailcoach\Domain\Audience\Events\TagAddedEvent;
 use Spatie\Mailcoach\Domain\Audience\Events\TagRemovedEvent;
@@ -30,26 +20,20 @@ use Spatie\Mailcoach\Domain\Audience\Support\PendingSubscriber;
 use Spatie\Mailcoach\Domain\Automation\Models\Action;
 use Spatie\Mailcoach\Domain\Automation\Models\Automation;
 use Spatie\Mailcoach\Domain\Campaign\Enums\TagType;
-use Spatie\Mailcoach\Domain\Campaign\Models\Campaign;
 use Spatie\Mailcoach\Domain\Campaign\Models\Concerns\HasExtraAttributes;
-use Spatie\Mailcoach\Domain\Shared\Models\HasUuid;
+use Spatie\Mailcoach\Domain\Campaign\Models\Concerns\HasUuid;
 use Spatie\Mailcoach\Domain\Shared\Models\Send;
-use Spatie\Mailcoach\Domain\Shared\Traits\Searchable;
+use Spatie\Mailcoach\Domain\Shared\Support\Config;
 use Spatie\Mailcoach\Domain\Shared\Traits\UsesMailcoachModels;
-use Spatie\Mailcoach\Mailcoach;
 
-class Subscriber extends Model implements CipherSweetEncrypted
+class Subscriber extends Model
 {
     use HasUuid;
     use HasExtraAttributes;
     use UsesMailcoachModels;
     use HasFactory;
-    use UsesCipherSweet;
-    use Searchable;
 
     public $table = 'mailcoach_subscribers';
-
-    protected $guarded = [];
 
     public $casts = [
         'extra_attributes' => 'array',
@@ -57,51 +41,7 @@ class Subscriber extends Model implements CipherSweetEncrypted
         'unsubscribed_at' => 'datetime',
     ];
 
-    protected function getSearchableConfig(): array
-    {
-        return [
-            'columns' => [
-                self::getSubscriberTableName().'.email' => 15,
-                self::getSubscriberTableName().'.first_name' => 10,
-                self::getSubscriberTableName().'.last_name' => 10,
-                self::getTagTableName().'.name' => 5,
-            ],
-            'joins' => [
-                'mailcoach_email_list_subscriber_tags' => [self::getSubscriberTableName().'.id', 'mailcoach_email_list_subscriber_tags.subscriber_id'],
-                self::getTagTableName() => ['mailcoach_email_list_subscriber_tags.tag_id', self::getTagTableName().'.id'],
-            ],
-        ];
-    }
-
-    protected static function bootUsesCipherSweet()
-    {
-        if (! config('mailcoach.encryption.enabled')) {
-            return;
-        }
-
-        static::observe(ModelObserver::class);
-
-        static::$cipherSweetEncryptedRow = new EncryptedRow(
-            app(CipherSweetEngine::class),
-            (new static())->getTable()
-        );
-
-        static::configureCipherSweet(static::$cipherSweetEncryptedRow);
-    }
-
-    public static function configureCipherSweet(EncryptedRow $encryptedRow): void
-    {
-        $encryptedRow
-            ->addTextField('email')
-            ->addTextField('first_name')
-            ->addTextField('last_name');
-
-        $encryptedRow->addBlindIndex('email', new BlindIndex('email_first_part', [new EmailFirstPart()]));
-        $encryptedRow->addBlindIndex('email', new BlindIndex('email_second_part', [new EmailSecondPart()]));
-
-        $encryptedRow->addBlindIndex('first_name', new BlindIndex('first_name', [new Lowercase()]));
-        $encryptedRow->addBlindIndex('last_name', new BlindIndex('last_name', [new Lowercase()]));
-    }
+    protected $guarded = [];
 
     public static function createWithEmail(string $email, array $attributes = []): PendingSubscriber
     {
@@ -110,36 +50,29 @@ class Subscriber extends Model implements CipherSweetEncrypted
 
     public static function findForEmail(string $email, EmailList $emailList): ?Subscriber
     {
-        $query = static::query()->where('email_list_id', $emailList->id);
-
-        if (config('mailcoach.encryption.enabled')) {
-            return $query
-                ->whereBlind('email', 'email_first_part', $email)
-                ->whereBlind('email', 'email_second_part', $email)
-                ->first();
-        }
-
-        return $query->where('email', $email)->first();
+        return static::where('email', $email)
+            ->where('email_list_id', $emailList->id)
+            ->first();
     }
 
     public function emailList(): BelongsTo
     {
-        return $this->belongsTo(self::getEmailListClass(), 'email_list_id');
+        return $this->belongsTo(config('mailcoach.models.email_list'), 'email_list_id');
     }
 
     public function sends(): HasMany
     {
-        return $this->hasMany(self::getSendClass(), 'subscriber_id');
+        return $this->hasMany($this->getSendClass(), 'subscriber_id');
     }
 
     public function opens(): HasMany
     {
-        return $this->hasMany(self::getCampaignOpenClass(), 'subscriber_id');
+        return $this->hasMany(static::getCampaignOpenClass(), 'subscriber_id');
     }
 
     public function clicks(): HasMany
     {
-        return $this->hasMany(self::getCampaignClickClass(), 'subscriber_id');
+        return $this->hasMany(static::getCampaignClickClass(), 'subscriber_id');
     }
 
     public function uniqueClicks(): HasMany
@@ -150,7 +83,7 @@ class Subscriber extends Model implements CipherSweetEncrypted
     public function tags(): BelongsToMany
     {
         return $this
-            ->belongsToMany(self::getTagClass(), 'mailcoach_email_list_subscriber_tags', 'subscriber_id', 'tag_id')
+            ->belongsToMany(Tag::class, 'mailcoach_email_list_subscriber_tags', 'subscriber_id', 'tag_id')
             ->orderBy('name');
     }
 
@@ -164,15 +97,6 @@ class Subscriber extends Model implements CipherSweetEncrypted
     public function currentAction(Automation $automation): ?Action
     {
         return $this->currentActions($automation)->first();
-    }
-
-    public function currentActionClass(Automation $automation): ?string
-    {
-        if (! $action = $this->currentAction($automation)) {
-            return null;
-        }
-
-        return $action->action::class;
     }
 
     public function currentActions(Automation $automation): Collection
@@ -193,7 +117,7 @@ class Subscriber extends Model implements CipherSweetEncrypted
                 static::getCampaignUnsubscribeClass()::firstOrCreate([
                     'campaign_id' => $send->campaign->id,
                     'subscriber_id' => $send->subscriber->id,
-                ], ['uuid' => Str::uuid()]);
+                ]);
 
                 $send->campaign->dispatchCalculateStatistics();
             }
@@ -202,7 +126,7 @@ class Subscriber extends Model implements CipherSweetEncrypted
                 static::getAutomationMailUnsubscribeClass()::firstOrCreate([
                     'automation_mail_id' => $send->automationMail->id,
                     'subscriber_id' => $send->subscriber->id,
-                ], ['uuid' => Str::uuid()]);
+                ]);
 
                 $send->automationMail->dispatchCalculateStatistics();
             }
@@ -218,32 +142,27 @@ class Subscriber extends Model implements CipherSweetEncrypted
         return url(route('mailcoach.unsubscribe', [$this->uuid, optional($send)->uuid]));
     }
 
-    public function unsubscribeTagUrl(string $tag, Send $send = null): string
+    public function unsubscribeTagUrl(string $tag): string
     {
-        return url(route('mailcoach.unsubscribe-tag', [$this->uuid, $tag, optional($send)->uuid]));
+        return url(route('mailcoach.unsubscribe-tag', [$this->uuid, $tag]));
     }
 
-    public function preferencesUrl(Send $send = null): string
-    {
-        return url(route('mailcoach.manage-preferences', [$this->uuid, optional($send)->uuid]));
-    }
-
-    public function getStatusAttribute(): SubscriptionStatus
+    public function getStatusAttribute(): string
     {
         if (! is_null($this->unsubscribed_at)) {
-            return SubscriptionStatus::Unsubscribed;
+            return SubscriptionStatus::UNSUBSCRIBED;
         }
 
         if (! is_null($this->subscribed_at)) {
-            return SubscriptionStatus::Subscribed;
+            return SubscriptionStatus::SUBSCRIBED;
         }
 
-        return SubscriptionStatus::Unconfirmed;
+        return SubscriptionStatus::UNCONFIRMED;
     }
 
     public function confirm()
     {
-        $action = Mailcoach::getAudienceActionClass('confirm_subscriber', ConfirmSubscriberAction::class);
+        $action = Config::getAudienceActionClass('confirm_subscriber', ConfirmSubscriberAction::class);
 
         return $action->execute($this);
     }
@@ -268,37 +187,28 @@ class Subscriber extends Model implements CipherSweetEncrypted
             ->whereNotNull('unsubscribed_at');
     }
 
-    public function scopeWithoutSendsForCampaign(Builder $query, Campaign $campaign)
-    {
-        return $query->whereDoesntHave('sends', function (Builder $query) use ($campaign) {
-            $query->where('campaign_id', $campaign->id);
-        });
-    }
-
-    public function addTag(string|iterable $name, ?TagType $type = null): self
+    public function addTag(string | iterable $name, string $type = null): self
     {
         $names = Arr::wrap($name);
 
         return $this->addTags($names, $type);
     }
 
-    public function addTags(array $names, ?TagType $type = null)
+    public function addTags(array $names, string $type = null)
     {
         foreach ($names as $name) {
             if ($this->hasTag($name)) {
                 continue;
             }
 
-            $tag = self::getTagClass()::firstOrCreate([
+            $tag = Tag::firstOrCreate([
                 'name' => $name,
                 'email_list_id' => $this->emailList->id,
             ], [
-                'uuid' => Str::uuid(),
-                'type' => $type ?? TagType::Default,
+                'type' => $type ?? TagType::DEFAULT,
             ]);
 
             $this->tags()->attach($tag);
-            $this->tags->add($tag);
 
             event(new TagAddedEvent($this, $tag));
         }
@@ -311,10 +221,10 @@ class Subscriber extends Model implements CipherSweetEncrypted
         return $this->tags()
             ->where('name', $name)
             ->where('email_list_id', $this->emailList->id)
-            ->count() > 0;
+            ->exists();
     }
 
-    public function removeTag(string|array $name): self
+    public function removeTag(string | array $name): self
     {
         $names = Arr::wrap($name);
 
@@ -325,49 +235,26 @@ class Subscriber extends Model implements CipherSweetEncrypted
     {
         $tags = $this->tags()->whereIn('name', $names)->get();
 
-        if ($tags->isEmpty()) {
-            return $this;
-        }
-
         foreach ($tags as $tag) {
             event(new TagRemovedEvent($this, $tag));
         }
 
         $this->tags()->detach($tags->pluck('id'));
 
-        $this->load('tags');
-
         return $this;
     }
 
-    public function syncTags(?array $names, string $type = 'default')
+    public function syncTags(array $names, string $type = 'default')
     {
-        $names ??= [];
-
         $this->addTags($names);
 
         $this->tags()->where('type', $type)->whereNotIn('name', $names)->each(function ($tag) {
             event(new TagRemovedEvent($this, $tag));
         });
 
-        $this->tags()->detach($this->tags()->where('type', $type)->whereNotIn('name', $names)->pluck(self::getTagTableName().'.id'));
+        $this->tags()->detach($this->tags()->where('type', $type)->whereNotIn('name', $names)->pluck('mailcoach_tags.id'));
 
         return $this;
-    }
-
-    public function syncPreferenceTags(?array $names)
-    {
-        $names ??= [];
-
-        $this->addTags($names);
-
-        $this->tags()->where('type', TagType::Default)->where('visible_in_preferences', true)->whereNotIn('name', $names)->each(function ($tag) {
-            event(new TagRemovedEvent($this, $tag));
-        });
-
-        $this->tags()->detach($this->tags()->where('type', TagType::Default)->where('visible_in_preferences', true)->whereNotIn('name', $names)->pluck(self::getTagTableName().'.id'));
-
-        return $this->fresh('tags');
     }
 
     public function toExportRow(): array
@@ -376,30 +263,42 @@ class Subscriber extends Model implements CipherSweetEncrypted
             'email' => $this->email,
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
-            'tags' => $this->tags->where('type', TagType::Default)->pluck('name')->implode(';'),
-            'subscribed_at' => $this->subscribed_at?->format('Y-m-d H:i:s'),
-            'unsubscribed_at' => $this->unsubscribed_at?->format('Y-m-d H:i:s'),
+            'tags' => $this->tags()->pluck('name')->implode(";"),
         ];
     }
 
     public function isUnconfirmed(): bool
     {
-        return $this->status === SubscriptionStatus::Unconfirmed;
+        return $this->status === SubscriptionStatus::UNCONFIRMED;
     }
 
     public function isSubscribed(): bool
     {
-        return $this->status === SubscriptionStatus::Subscribed;
+        return $this->status === SubscriptionStatus::SUBSCRIBED;
     }
 
     public function isUnsubscribed(): bool
     {
-        return $this->status === SubscriptionStatus::Unsubscribed;
+        return $this->status === SubscriptionStatus::UNSUBSCRIBED;
     }
 
     public function inAutomation(Automation $automation): bool
     {
         return $this->actions()->where('automation_id', $automation->id)->count() > 0;
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $field ??= $this->getRouteKeyName();
+
+        $subscriber = $this->getSubscriberClass()::where($field, $value)->first();
+
+        if ($subscriber) {
+            return $subscriber;
+        }
+
+        /** Can also bind uuid */
+        return $this->getSubscriberClass()::where('uuid', $value)->firstOrFail();
     }
 
     protected static function newFactory(): SubscriberFactory

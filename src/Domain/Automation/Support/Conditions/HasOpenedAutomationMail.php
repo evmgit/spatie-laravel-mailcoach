@@ -20,7 +20,7 @@ class HasOpenedAutomationMail implements Condition
 
     public static function getName(): string
     {
-        return (string) __mc('Has opened automation mail');
+        return (string) __('Has opened automation mail');
     }
 
     public static function getDescription(array $data): string
@@ -29,7 +29,7 @@ class HasOpenedAutomationMail implements Condition
             return '';
         }
 
-        return (string) __mc(':mail', ['mail' => static::getAutomationMailClass()::find($data['automation_mail_id'])->name]);
+        return (string) __(':mail', ['mail' => static::getAutomationMailClass()::find($data['automation_mail_id'])->name]);
     }
 
     public static function rules(): array

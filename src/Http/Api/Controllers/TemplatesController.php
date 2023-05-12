@@ -20,7 +20,7 @@ class TemplatesController
 
     public function index(TemplatesQuery $templatesQuery)
     {
-        $this->authorize('viewAny', static::getTemplateClass());
+        $this->authorize("viewAny", static::getTemplateClass());
 
         $templates = $templatesQuery->paginate();
 
@@ -29,7 +29,7 @@ class TemplatesController
 
     public function show(Template $template)
     {
-        $this->authorize('view', $template);
+        $this->authorize("view", $template);
 
         return new TemplateResource($template);
     }
@@ -38,7 +38,7 @@ class TemplatesController
         TemplateRequest $request,
         CreateTemplateAction $createTemplateAction
     ) {
-        $this->authorize('create', static::getTemplateClass());
+        $this->authorize("create", static::getTemplateClass());
 
         $template = $createTemplateAction->execute($request->validated());
 
@@ -50,7 +50,7 @@ class TemplatesController
         TemplateRequest $request,
         UpdateTemplateAction $updateTemplateAction
     ) {
-        $this->authorize('update', $template);
+        $this->authorize("update", $template);
 
         $template = $updateTemplateAction->execute($template, $request->validated());
 
@@ -59,7 +59,7 @@ class TemplatesController
 
     public function destroy(Template $template)
     {
-        $this->authorize('delete', $template);
+        $this->authorize("delete", $template);
 
         $template->delete();
 

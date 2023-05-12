@@ -1,33 +1,29 @@
-@props([
-    'title' => null,
-    'href' => null,
-    'active' => false,
-])
-@php
-$isActive = ($active || \Illuminate\Support\Str::startsWith($href, request()->url()));
-@endphp
-<div {{ $attributes }}>
-    @if($title)
+
+<div class="navigation-group {{ $class ?? '' }}">
+    @isset($title)
         @php
             $maxLength = 22;
             $partLength = floor(($maxLength - 1)/2);
-            $titleTruncated = strlen($title) > $maxLength ?
+            $titleTruncated = strlen($title) > $maxLength ? 
                 substr($title, 0, $partLength ) . '…' . substr($title, -$partLength )
                 : $title;
         @endphp
-        <li class="navigation-item {{ $isActive ? 'navigation-item-active' : ''  }}">
-            @isset($href)
-            <a href="{{ $href }}">
-                {{ $titleTruncated ?? '' }}
-            </a>
-            @else
-            <span>
-                {{ $titleTruncated ?? '' }}
-            </span>
-            @endif
-        </li>
-    @endif
-    <ul class="mt-1 md:mt-3 flex items-center md:items-start gap-x-4 gap-y-3 md:flex-col @if($title) navigation-group @endif">
+        <div class="flex lg:justify-end">
+            <h3 class="truncate">
+                <span class="icon-label">
+                    @isset($icon)
+                    <span class="ml-2 lg:ml-0">
+                        <i class="fa-fw {{ $icon }}"></i>
+                    </span>
+                    @endisset
+                    <span class="icon-label-text">
+                        {{ $titleTruncated ?? '' }}
+                    </span>
+                </span>
+            </h3>
+        </div>
+    @endisset
+    <ul>
         {{ $slot }}
     </ul>
 </div>

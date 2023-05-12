@@ -1,4 +1,4 @@
-@layer utilities {
+@responsive {
     .place-center {
         align-items: center;
         justify-items: center;

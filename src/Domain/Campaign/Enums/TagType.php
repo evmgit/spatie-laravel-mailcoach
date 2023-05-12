@@ -2,8 +2,8 @@
 
 namespace Spatie\Mailcoach\Domain\Campaign\Enums;
 
-enum TagType: string
+class TagType
 {
-    case Default = 'default';
-    case Mailcoach = 'mailcoach';
+    const DEFAULT = 'default';
+    const MAILCOACH = 'mailcoach';
 }

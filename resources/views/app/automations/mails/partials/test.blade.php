@@ -8,8 +8,8 @@
     <div class="flex items-end">
         <div class="flex-grow max-w-xl">
             <x-mailcoach::text-field
-                :label="__mc('Test addresses')"
-                :placeholder="__mc('Email(s) comma separated')"
+                :label="__('Test addresses')"
+                :placeholder="__('Email(s) comma separated')"
                 name="emails"
                 :required="true"
                 type="text"
@@ -17,6 +17,6 @@
             />
         </div>
 
-        <x-mailcoach::button class="ml-2" :label="__mc('Send Test')"/>
+        <x-mailcoach::button class="ml-2" :label="__('Send test')"/>
     </div>
 </form>

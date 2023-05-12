@@ -2,8 +2,6 @@
 
 namespace Spatie\Mailcoach\Domain\Audience\Support;
 
-use Carbon\CarbonInterface;
-use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Spatie\Mailcoach\Domain\Audience\Enums\SubscriptionStatus;
@@ -24,27 +22,16 @@ class ImportSubscriberRow
 
     public function hasValidEmail(): bool
     {
-        $validator = Validator::make(['email' => $this->getEmail()], ['email' => 'required|email']);
+        $validator = Validator::make($this->values, ['email' => 'required|email']);
 
         return ! $validator->fails();
     }
 
-    public function subscribedAt(): CarbonInterface
-    {
-        $date = $this->values['subscribed_at'] ?? $this->values['optin_time'] ?? $this->values['confirm_time'] ?? $this->values['created_at'] ?? null;
-
-        if (! $date) {
-            return now();
-        }
-
-        return Date::parse($date);
-    }
-
     public function hasUnsubscribed(): bool
     {
-        $subscriptionStatus = $this->emailList->getSubscriptionStatus($this->getEmail());
+        $subscriptionStatus = $this->emailList->getSubscriptionStatus($this->values['email']);
 
-        return $subscriptionStatus === SubscriptionStatus::Unsubscribed;
+        return $subscriptionStatus === SubscriptionStatus::UNSUBSCRIBED;
     }
 
     public function getAllValues(): array
@@ -54,14 +41,14 @@ class ImportSubscriberRow
 
     public function getEmail(): string
     {
-        return $this->values['email'] ?? $this->values['email address'] ?? '';
+        return $this->values['email'] ?? '';
     }
 
     public function getAttributes(): array
     {
         return [
-            'first_name' => $this->values['first_name'] ?? $this->values['first name'] ?? '',
-            'last_name' => $this->values['last_name'] ?? $this->values['last name'] ?? '',
+            'first_name' => $this->values['first_name'] ?? '',
+            'last_name' => $this->values['last_name'] ?? '',
         ];
     }
 
@@ -87,19 +74,7 @@ class ImportSubscriberRow
             return null;
         }
 
-        $tags = $this->values['tags'];
-
-        if (is_array($tags)) {
-            $tags = implode(';', $tags);
-        }
-
-        $delimiters = [';', ',', '|'];
-
-        /** Support any of the delimiters */
-        $tags = str_replace($delimiters, $delimiters[0], $tags);
-        $tags = str_replace(['"', "'"], '', $tags);
-
-        $tags = explode(';', $tags);
+        $tags = explode(';', $this->values['tags']);
 
         $sanitizedTags = array_map('trim', $tags);
 

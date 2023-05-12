@@ -14,7 +14,7 @@ class UnsubscribeController
 
     public function __invoke(Subscriber $subscriber)
     {
-        $this->authorize('update', $subscriber->emailList);
+        $this->authorize("update", $subscriber->emailList);
 
         $this->ensureSubscribedSubscriber($subscriber);
 

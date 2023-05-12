@@ -14,7 +14,7 @@ class SendTestEmailController
 
     public function __invoke(SendCampaignTestRequest $request, Campaign $campaign)
     {
-        $this->authorize('view', $campaign);
+        $this->authorize("view", $campaign);
 
         $campaign->sendTestMail($request->sanitizedEmails());
 

@@ -3,13 +3,48 @@
 namespace Spatie\Mailcoach\Domain\TransactionalMail\Mails\Concerns;
 
 use Spatie\Mailcoach\Domain\TransactionalMail\Support\TransactionalMailMessageConfig;
-use Symfony\Component\Mime\Email;
-use Symfony\Component\Mime\Header\AbstractHeader;
+use Swift_Message;
+use Swift_Mime_Headers_AbstractHeader;
 
 /** @mixin \Illuminate\Mail\Mailable */
 trait StoresMail
 {
+    protected bool $trackOpens = false;
+
+    protected bool $trackClicks = false;
+
     protected bool $store = false;
+
+    public function trackOpensAndClicks(): self
+    {
+        $this->store = true;
+        $this->trackOpens = true;
+        $this->trackClicks = true;
+
+        $this->setMailCoachTrackingHeaders();
+
+        return $this;
+    }
+
+    public function trackOpens(): self
+    {
+        $this->store = true;
+        $this->trackOpens = true;
+
+        $this->setMailCoachTrackingHeaders();
+
+        return $this;
+    }
+
+    public function trackClicks(): self
+    {
+        $this->store = true;
+        $this->trackClicks = true;
+
+        $this->setMailCoachTrackingHeaders();
+
+        return $this;
+    }
 
     public function store(): self
     {
@@ -22,11 +57,22 @@ trait StoresMail
 
     protected function setMailCoachTrackingHeaders(): self
     {
-        $this->withSymfonyMessage(function (Email $message) {
+        $this->withSwiftMessage(function (Swift_Message $message) {
             $this->removeExistingMailcoachHeaders($message);
 
-            if ($this->store) {
+            if ($this->trackOpens) {
+                $this->addMailcoachHeader($message, TransactionalMailMessageConfig::HEADER_NAME_OPENS);
+            }
+
+            if ($this->trackClicks) {
+                $this->addMailcoachHeader($message, TransactionalMailMessageConfig::HEADER_NAME_CLICKS);
+            }
+
+            if ($this->trackOpens || $this->trackClicks) {
                 $this->addMailcoachHeader($message, 'X-MAILCOACH', 'true');
+            }
+
+            if ($this->store) {
                 $this->addMailcoachHeader($message, TransactionalMailMessageConfig::HEADER_NAME_STORE);
             }
 
@@ -36,21 +82,10 @@ trait StoresMail
         return $this;
     }
 
-    protected function setTransactionalHeader(): self
-    {
-        $this->withSymfonyMessage(function (Email $message) {
-            $message->getHeaders()->remove(TransactionalMailMessageConfig::HEADER_NAME_TRANSACTIONAL);
-
-            $this->addMailcoachHeader($message, TransactionalMailMessageConfig::HEADER_NAME_TRANSACTIONAL, true);
-        });
-
-        return $this;
-    }
-
     protected function setMailableClassHeader(string $className): self
     {
-        $this->withSymfonyMessage(function (Email $message) use ($className) {
-            $message->getHeaders()->remove(TransactionalMailMessageConfig::HEADER_NAME_MAILABLE_CLASS);
+        $this->withSwiftMessage(function (Swift_Message $message) use ($className) {
+            $message->getHeaders()->removeAll(TransactionalMailMessageConfig::HEADER_NAME_MAILABLE_CLASS);
 
             $this->addMailcoachHeader($message, TransactionalMailMessageConfig::HEADER_NAME_MAILABLE_CLASS, $className);
         });
@@ -58,19 +93,19 @@ trait StoresMail
         return $this;
     }
 
-    protected function removeExistingMailcoachHeaders(Email $message): void
+    protected function removeExistingMailcoachHeaders(Swift_Message $message): void
     {
-        collect($message->getHeaders()->all())
-            ->filter(function (AbstractHeader $header) {
-                return in_array($header->getName(), TransactionalMailMessageConfig::getHeaderNames());
+        collect($message->getHeaders()->getAll())
+            ->filter(function (Swift_Mime_Headers_AbstractHeader $header) {
+                return in_array($header->getFieldName(), TransactionalMailMessageConfig::getHeaderNames());
             })
-            ->each(function (AbstractHeader $header) use ($message) {
-                $message->getHeaders()->remove($header->getName());
+            ->each(function (Swift_Mime_Headers_AbstractHeader $header) use ($message) {
+                $message->getHeaders()->removeAll($header->getFieldName());
             });
     }
 
     protected function addMailcoachHeader(
-        Email $message,
+        Swift_Message $message,
         string $headerName,
         string $headerValue = ''
     ): self {

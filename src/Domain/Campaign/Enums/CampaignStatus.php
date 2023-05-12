@@ -2,10 +2,10 @@
 
 namespace Spatie\Mailcoach\Domain\Campaign\Enums;
 
-enum CampaignStatus: string
+class CampaignStatus
 {
-    case Draft = 'draft';
-    case Sending = 'sending';
-    case Sent = 'sent';
-    case Cancelled = 'cancelled';
+    const DRAFT = 'draft';
+    const SENDING = 'sending';
+    const SENT = 'sent';
+    const CANCELLED = 'cancelled';
 }
